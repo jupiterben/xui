@@ -34,6 +34,7 @@ pnpm dev:playground:react
 - `toggle` 逻辑（core）
 - `useToggle`（Vue / React）
 - `XuiSwitch`（Vue / React）
+- `XuiList` / `XuiFlex` / `XuiGrid` / `XuiTree`（Vue / React）
 - `playgrounds/vue` Tailwind 演示页面
 - `playgrounds/react` Tailwind 演示页面
 
