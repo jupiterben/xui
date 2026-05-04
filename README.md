@@ -11,8 +11,9 @@
 ## Monorepo 结构
 
 ```txt
-apps/
-  showcase/       # Tailwind 展示页面（Vue + Vite）
+playgrounds/
+  vue/            # Vue Tailwind 演示页面（Vue + Vite）
+  react/          # React Tailwind 演示页面（React + Vite）
 packages/
   core/           # 与框架无关的状态机/逻辑
   vue/            # Vue 适配层（composables + 组件）
@@ -24,7 +25,8 @@ packages/
 ```bash
 pnpm install
 pnpm build
-pnpm dev:showcase
+pnpm dev:playground:vue
+pnpm dev:playground:react
 ```
 
 ## 已包含示例
@@ -32,6 +34,7 @@ pnpm dev:showcase
 - `toggle` 逻辑（core）
 - `useToggle`（Vue / React）
 - `XuiSwitch`（Vue / React）
-- `apps/showcase` Tailwind 展示页面
+- `playgrounds/vue` Tailwind 演示页面
+- `playgrounds/react` Tailwind 演示页面
 
 > 展示页使用 Tailwind 对 headless 组件进行样式定制。
