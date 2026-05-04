@@ -29,12 +29,33 @@ pnpm dev:playground:vue
 pnpm dev:playground:react
 ```
 
+## AI 主题生成
+
+`XuiThemeDesigner` 支持传入 `themeGenerator(prompt)`，playground 已内置一个 Vite dev middleware：
+
+```bash
+OPENAI_API_KEY=sk-... pnpm dev:playground:react
+OPENAI_API_KEY=sk-... pnpm dev:playground:vue
+```
+
+可选环境变量：
+
+- `XUI_THEME_API_KEY`：覆盖 `OPENAI_API_KEY`
+- `XUI_THEME_MODEL`：默认 `gpt-5.4-mini`
+- `XUI_THEME_API_BASE_URL`：默认 `https://api.openai.com/v1`，可指向 OpenAI 兼容服务
+
+没有配置 key 或模型请求失败时，playground 会自动回退到本地提示词生成。
+
 ## 已包含示例
 
 - `toggle` 逻辑（core）
 - `useToggle`（Vue / React）
 - `XuiSwitch`（Vue / React）
 - `XuiList` / `XuiFlex` / `XuiGrid` / `XuiTree`（Vue / React）
+- `XuiThemeDesigner`（Vue / React）：支持预设、用户自定义主题变量和提示词生成主题
+  - 颜色：背景、表面、文字、主色、辅色、边框、focus ring
+  - 排版：字体、字号比例、行高、字重 token
+  - 形态：圆角、间距密度、边框粗细、阴影强度、过渡 token
 - `playgrounds/vue` Tailwind 演示页面
 - `playgrounds/react` Tailwind 演示页面
 

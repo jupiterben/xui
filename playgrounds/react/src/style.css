@@ -1,3 +1,66 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --xui-bg: #020617;
+  --xui-surface: #0f172a;
+  --xui-surface-muted: #1e293b;
+  --xui-border: #1e293b;
+  --xui-text: #f8fafc;
+  --xui-muted: #94a3b8;
+  --xui-accent: #38bdf8;
+  --xui-accent-contrast: #0f172a;
+  --xui-accent-soft: #0c4a6e;
+  --xui-secondary: #22d3ee;
+  --xui-secondary-contrast: #0f172a;
+  --xui-font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  --xui-font-size-xs: 0.75rem;
+  --xui-font-size-sm: 0.875rem;
+  --xui-font-size-base: 1rem;
+  --xui-font-size-lg: 1.125rem;
+  --xui-font-size-xl: 1.25rem;
+  --xui-font-size-2xl: 1.5rem;
+  --xui-font-size-3xl: 1.875rem;
+  --xui-font-size-4xl: 2.25rem;
+  --xui-line-height: 1.5;
+  --xui-font-weight-normal: 400;
+  --xui-font-weight-medium: 500;
+  --xui-font-weight-semibold: 650;
+  --xui-radius-sm: 4.9px;
+  --xui-radius-md: 7.7px;
+  --xui-radius-lg: 10.5px;
+  --xui-radius-xl: 14px;
+  --xui-radius-2xl: 18.9px;
+  --xui-radius-full: 999px;
+  --xui-space-1: 4px;
+  --xui-space-2: 8px;
+  --xui-space-3: 12px;
+  --xui-space-4: 16px;
+  --xui-space-5: 20px;
+  --xui-space-6: 24px;
+  --xui-border-width: 1px;
+  --xui-shadow-sm: 0 1px 2px 0 rgb(2 6 23 / 0.07);
+  --xui-shadow-md: 0 8px 24px -8px rgb(2 6 23 / 0.1);
+  --xui-shadow-lg: 0 18px 48px -18px rgb(2 6 23 / 0.13);
+  --xui-focus-ring: 0 0 0 3px #155e75;
+  --xui-transition-fast: 120ms ease;
+  --xui-transition-base: 180ms ease;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--xui-bg);
+  color: var(--xui-text);
+  font-family: var(--xui-font-family);
+  font-size: var(--xui-font-size-base);
+  line-height: var(--xui-line-height);
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+code {
+  color: var(--xui-accent);
+}

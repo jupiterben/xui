@@ -4,3 +4,4 @@ export * from './XuiList';
 export * from './XuiFlex';
 export * from './XuiGrid';
 export * from './XuiTree';
+export * from './XuiThemeDesigner';
