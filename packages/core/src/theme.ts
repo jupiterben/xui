@@ -3,6 +3,10 @@ export type XuiThemeInput = {
   accent: string;
   secondary: string;
   background: string;
+  error: string;
+  warning: string;
+  success: string;
+  info: string;
   fontFamily: string;
   fontScale: number;
   radius: number;
@@ -11,7 +15,18 @@ export type XuiThemeInput = {
   shadowStrength: number;
 };
 
-export type XuiThemeGenerator = (prompt: string) => XuiThemeInput | Promise<XuiThemeInput>;
+export type XuiThemeImage = {
+  dataUrl?: string;
+  url?: string;
+  name?: string;
+  type?: string;
+};
+
+export type XuiThemeGeneratorOptions = {
+  image?: XuiThemeImage;
+};
+
+export type XuiThemeGenerator = (prompt: string, options?: XuiThemeGeneratorOptions) => XuiThemeInput | Promise<XuiThemeInput>;
 
 export type XuiThemeVariables = {
   '--xui-bg': string;
@@ -25,6 +40,18 @@ export type XuiThemeVariables = {
   '--xui-accent-soft': string;
   '--xui-secondary': string;
   '--xui-secondary-contrast': string;
+  '--xui-error': string;
+  '--xui-error-contrast': string;
+  '--xui-error-soft': string;
+  '--xui-warning': string;
+  '--xui-warning-contrast': string;
+  '--xui-warning-soft': string;
+  '--xui-success': string;
+  '--xui-success-contrast': string;
+  '--xui-success-soft': string;
+  '--xui-info': string;
+  '--xui-info-contrast': string;
+  '--xui-info-soft': string;
   '--xui-font-family': string;
   '--xui-font-size-xs': string;
   '--xui-font-size-sm': string;
@@ -65,6 +92,10 @@ export const defaultThemePresets: XuiThemeInput[] = [
     accent: '#38bdf8',
     secondary: '#22d3ee',
     background: '#020617',
+    error: '#f43f5e',
+    warning: '#f59e0b',
+    success: '#22c55e',
+    info: '#3b82f6',
     fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
     fontScale: 1,
     radius: 14,
@@ -77,6 +108,10 @@ export const defaultThemePresets: XuiThemeInput[] = [
     accent: '#f59e0b',
     secondary: '#ef4444',
     background: '#111827',
+    error: '#fb7185',
+    warning: '#fbbf24',
+    success: '#4ade80',
+    info: '#60a5fa',
     fontFamily: 'ui-sans-serif, system-ui, sans-serif',
     fontScale: 1.02,
     radius: 10,
@@ -89,6 +124,10 @@ export const defaultThemePresets: XuiThemeInput[] = [
     accent: '#8b5cf6',
     secondary: '#ec4899',
     background: '#18181b',
+    error: '#f43f5e',
+    warning: '#eab308',
+    success: '#10b981',
+    info: '#6366f1',
     fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
     fontScale: 0.98,
     radius: 18,
@@ -101,6 +140,10 @@ export const defaultThemePresets: XuiThemeInput[] = [
     accent: '#2563eb',
     secondary: '#16a34a',
     background: '#f8fafc',
+    error: '#dc2626',
+    warning: '#d97706',
+    success: '#15803d',
+    info: '#2563eb',
     fontFamily: 'Georgia, ui-serif, serif',
     fontScale: 1.04,
     radius: 8,
@@ -113,12 +156,16 @@ export const defaultThemePresets: XuiThemeInput[] = [
 export const themeJsonSchema = {
   type: 'object',
   additionalProperties: false,
-  required: ['name', 'accent', 'secondary', 'background', 'fontFamily', 'fontScale', 'radius', 'density', 'borderWidth', 'shadowStrength'],
+  required: ['name', 'accent', 'secondary', 'background', 'error', 'warning', 'success', 'info', 'fontFamily', 'fontScale', 'radius', 'density', 'borderWidth', 'shadowStrength'],
   properties: {
     name: { type: 'string' },
     accent: { type: 'string', pattern: '^#[0-9a-fA-F]{6}$' },
     secondary: { type: 'string', pattern: '^#[0-9a-fA-F]{6}$' },
     background: { type: 'string', pattern: '^#[0-9a-fA-F]{6}$' },
+    error: { type: 'string', pattern: '^#[0-9a-fA-F]{6}$' },
+    warning: { type: 'string', pattern: '^#[0-9a-fA-F]{6}$' },
+    success: { type: 'string', pattern: '^#[0-9a-fA-F]{6}$' },
+    info: { type: 'string', pattern: '^#[0-9a-fA-F]{6}$' },
     fontFamily: { type: 'string' },
     fontScale: { type: 'number', minimum: 0.86, maximum: 1.24 },
     radius: { type: 'number', minimum: 0, maximum: 28 },
@@ -194,6 +241,10 @@ export function normalizeThemeInput(value: unknown, fallback: XuiThemeInput = de
     accent: isHexColor(input.accent) ? input.accent : fallback.accent,
     secondary: isHexColor(input.secondary) ? input.secondary : fallback.secondary,
     background: isHexColor(input.background) ? input.background : fallback.background,
+    error: isHexColor(input.error) ? input.error : fallback.error,
+    warning: isHexColor(input.warning) ? input.warning : fallback.warning,
+    success: isHexColor(input.success) ? input.success : fallback.success,
+    info: isHexColor(input.info) ? input.info : fallback.info,
     fontFamily: typeof input.fontFamily === 'string' && input.fontFamily.trim() ? input.fontFamily : fallback.fontFamily,
     fontScale: clamp(Number(input.fontScale ?? fallback.fontScale), 0.86, 1.24),
     radius: clamp(Number(input.radius ?? fallback.radius), 0, 28),
@@ -217,6 +268,10 @@ export function generateThemeFromPrompt(prompt: string): XuiThemeInput {
     accent: hslToHex(hue, 0.72, dark ? 0.56 : 0.44),
     secondary: hslToHex(secondaryHue, 0.68, dark ? 0.58 : 0.42),
     background: hslToHex((hue + 220) % 360, dark ? 0.42 : 0.28, dark ? 0.08 : 0.96),
+    error: dark ? '#f43f5e' : '#dc2626',
+    warning: dark ? '#f59e0b' : '#d97706',
+    success: dark ? '#22c55e' : '#15803d',
+    info: dark ? '#3b82f6' : '#2563eb',
     fontFamily: editorial ? 'Georgia, ui-serif, serif' : 'Inter, ui-sans-serif, system-ui, sans-serif',
     fontScale: editorial ? 1.04 : compact ? 0.96 : 1,
     radius: soft ? 18 : compact ? 8 : 12,
@@ -254,6 +309,18 @@ export function resolveThemeVariables(theme: XuiThemeInput): XuiThemeVariables {
     '--xui-accent-soft': mixColor(theme.accent, theme.background, 0.72),
     '--xui-secondary': theme.secondary,
     '--xui-secondary-contrast': getColorLuminance(theme.secondary) > 0.55 ? '#0f172a' : '#ffffff',
+    '--xui-error': theme.error,
+    '--xui-error-contrast': getColorLuminance(theme.error) > 0.55 ? '#0f172a' : '#ffffff',
+    '--xui-error-soft': mixColor(theme.error, theme.background, 0.72),
+    '--xui-warning': theme.warning,
+    '--xui-warning-contrast': getColorLuminance(theme.warning) > 0.55 ? '#0f172a' : '#ffffff',
+    '--xui-warning-soft': mixColor(theme.warning, theme.background, 0.72),
+    '--xui-success': theme.success,
+    '--xui-success-contrast': getColorLuminance(theme.success) > 0.55 ? '#0f172a' : '#ffffff',
+    '--xui-success-soft': mixColor(theme.success, theme.background, 0.72),
+    '--xui-info': theme.info,
+    '--xui-info-contrast': getColorLuminance(theme.info) > 0.55 ? '#0f172a' : '#ffffff',
+    '--xui-info-soft': mixColor(theme.info, theme.background, 0.72),
     '--xui-font-family': theme.fontFamily,
     '--xui-font-size-xs': `${0.75 * fontScale}rem`,
     '--xui-font-size-sm': `${0.875 * fontScale}rem`,

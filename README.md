@@ -31,7 +31,7 @@ pnpm dev:playground:react
 
 ## AI 主题生成
 
-`XuiThemeDesigner` 支持传入 `themeGenerator(prompt)`，playground 已内置一个 Vite dev middleware：
+`XuiThemeDesigner` 支持传入 `themeGenerator(prompt, options)`，playground 已内置一个 Vite dev middleware：
 
 ```bash
 OPENAI_API_KEY=sk-... pnpm dev:playground:react
@@ -45,6 +45,8 @@ OPENAI_API_KEY=sk-... pnpm dev:playground:vue
 - `XUI_THEME_API_BASE_URL`：默认 `https://api.openai.com/v1`，可指向 OpenAI 兼容服务
 
 没有配置 key 或模型请求失败时，playground 会自动回退到本地提示词生成。
+上传参考图片后，playground 会把图片作为 base64 data URL 传给 `/api/theme`；也可以在图片 URL 输入框或提示词输入框中直接粘贴 `https://...` 图片地址。
+服务端会把图片转成模型的图片输入，URL 必须是模型服务可访问的公网地址。
 
 ## 已包含示例
 

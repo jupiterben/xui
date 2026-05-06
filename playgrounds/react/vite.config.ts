@@ -1,14 +1,21 @@
 import { fileURLToPath, URL } from 'node:url';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { themeApiPlugin } from '../theme-api';
 
-export default defineConfig({
-  plugins: [react(), themeApiPlugin()],
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-      '@xui/react': fileURLToPath(new URL('../../packages/react/src/index.ts', import.meta.url))
+const workspaceRoot = fileURLToPath(new URL('../..', import.meta.url));
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, workspaceRoot, '');
+
+  return {
+    envDir: workspaceRoot,
+    plugins: [react(), themeApiPlugin(env)],
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url)),
+        '@xui/react': fileURLToPath(new URL('../../packages/react/src/index.ts', import.meta.url))
+      }
     }
-  }
+  };
 });

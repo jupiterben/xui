@@ -12,6 +12,9 @@
       "@/*": [
         "src/*"
       ],
+      "@xui/core": [
+        "../../packages/core/src/index.ts"
+      ],
       "@xui/vue": [
         "../../packages/vue/src/index.ts"
       ]

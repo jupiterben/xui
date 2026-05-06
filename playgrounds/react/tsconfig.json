@@ -13,6 +13,9 @@
       "@/*": [
         "src/*"
       ],
+      "@xui/core": [
+        "../../packages/core/src/index.ts"
+      ],
       "@xui/react": [
         "../../packages/react/src/index.ts"
       ]

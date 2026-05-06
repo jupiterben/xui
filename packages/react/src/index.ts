@@ -4,4 +4,6 @@ export * from './XuiList';
 export * from './XuiFlex';
 export * from './XuiGrid';
 export * from './XuiTree';
+export * from './XuiPromptInput';
+export * from './XuiButton';
 export * from './XuiThemeDesigner';

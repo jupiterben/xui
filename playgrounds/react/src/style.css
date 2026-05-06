@@ -64,3 +64,290 @@ body {
 code {
   color: var(--xui-accent);
 }
+
+/* ── XuiPromptInput ─────────────────────────────────────────── */
+
+.xui-prompt-input {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: var(--xui-radius-lg);
+  border: var(--xui-border-width) solid var(--xui-border);
+  background: var(--xui-bg);
+  padding: var(--xui-space-2) var(--xui-space-3);
+  transition:
+    border-color var(--xui-transition-fast),
+    box-shadow var(--xui-transition-fast);
+}
+
+.xui-prompt-input:focus-within {
+  border-color: var(--xui-accent);
+  box-shadow: var(--xui-focus-ring);
+}
+
+.xui-prompt-input--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.xui-prompt-input--drag-over {
+  border-color: var(--xui-accent);
+  border-style: dashed;
+}
+
+/* Drop overlay */
+.xui-prompt-input__drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--xui-radius-lg);
+  background: color-mix(in srgb, var(--xui-accent) 12%, transparent);
+  backdrop-filter: blur(2px);
+  font-size: var(--xui-font-size-sm);
+  color: var(--xui-accent);
+  pointer-events: none;
+}
+
+/* Image chip */
+.xui-prompt-input__image-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  max-width: 240px;
+  border-radius: var(--xui-radius-md);
+  background: var(--xui-surface-muted);
+  padding: 3px 8px 3px 3px;
+  font-size: var(--xui-font-size-xs);
+  color: var(--xui-muted);
+  animation: xui-chip-in 180ms ease;
+}
+
+@keyframes xui-chip-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.xui-prompt-input__image-thumb {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: calc(var(--xui-radius-md) - 1px);
+  flex-shrink: 0;
+}
+
+.xui-prompt-input__image-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.xui-prompt-input__image-remove {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: var(--xui-radius-sm);
+  background: transparent;
+  color: var(--xui-muted);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--xui-transition-fast);
+}
+
+.xui-prompt-input__image-remove:hover {
+  background: var(--xui-surface-muted);
+  color: var(--xui-text);
+}
+
+/* Input row */
+.xui-prompt-input__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.xui-prompt-input__textarea {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--xui-text);
+  font-family: var(--xui-font-family);
+  font-size: var(--xui-font-size-sm);
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.xui-prompt-input__textarea::placeholder {
+  color: var(--xui-muted);
+  opacity: 0.65;
+}
+
+.xui-prompt-input__attach {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--xui-radius-sm);
+  background: transparent;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--xui-muted);
+  transition:
+    background var(--xui-transition-fast),
+    color var(--xui-transition-fast);
+}
+
+.xui-prompt-input__attach:hover {
+  background: var(--xui-surface-muted);
+  color: var(--xui-text);
+}
+
+.xui-prompt-input__attach:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ── XuiButton ─────────────────────────────────────────────── */
+
+.xui-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--xui-space-2);
+  border: var(--xui-border-width) solid transparent;
+  border-radius: var(--xui-radius-md);
+  font-family: var(--xui-font-family);
+  font-weight: var(--xui-font-weight-medium);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition:
+    background var(--xui-transition-fast),
+    border-color var(--xui-transition-fast),
+    box-shadow var(--xui-transition-fast),
+    transform 100ms ease;
+}
+
+/* Sizes */
+.xui-button[data-size="sm"] {
+  height: 30px;
+  padding: 0 var(--xui-space-2);
+  font-size: var(--xui-font-size-xs);
+  border-radius: var(--xui-radius-sm);
+}
+
+.xui-button[data-size="md"] {
+  height: 36px;
+  padding: 0 var(--xui-space-3);
+  font-size: var(--xui-font-size-sm);
+}
+
+.xui-button[data-size="lg"] {
+  height: 44px;
+  padding: 0 var(--xui-space-4);
+  font-size: var(--xui-font-size-base);
+}
+
+/* Primary */
+.xui-button[data-variant="primary"] {
+  background: var(--xui-accent);
+  color: var(--xui-accent-contrast);
+  border-color: var(--xui-accent);
+}
+
+.xui-button[data-variant="primary"]:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.xui-button[data-variant="primary"]:active:not(:disabled) {
+  filter: brightness(0.94);
+  transform: scale(0.98);
+}
+
+/* Secondary */
+.xui-button[data-variant="secondary"] {
+  background: var(--xui-secondary);
+  color: var(--xui-secondary-contrast);
+  border-color: var(--xui-secondary);
+}
+
+.xui-button[data-variant="secondary"]:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.xui-button[data-variant="secondary"]:active:not(:disabled) {
+  filter: brightness(0.94);
+  transform: scale(0.98);
+}
+
+/* Outline */
+.xui-button[data-variant="outline"] {
+  background: transparent;
+  color: var(--xui-accent);
+  border-color: var(--xui-border);
+}
+
+.xui-button[data-variant="outline"]:hover:not(:disabled) {
+  background: var(--xui-accent-soft);
+  border-color: var(--xui-accent);
+}
+
+.xui-button[data-variant="outline"]:active:not(:disabled) {
+  filter: brightness(0.9);
+  transform: scale(0.98);
+}
+
+/* Ghost */
+.xui-button[data-variant="ghost"] {
+  background: transparent;
+  color: var(--xui-text);
+  border-color: transparent;
+}
+
+.xui-button[data-variant="ghost"]:hover:not(:disabled) {
+  background: var(--xui-surface-muted);
+}
+
+.xui-button[data-variant="ghost"]:active:not(:disabled) {
+  background: var(--xui-surface);
+  transform: scale(0.98);
+}
+
+/* Disabled */
+.xui-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Focus */
+.xui-button:focus-visible {
+  outline: none;
+  box-shadow: var(--xui-focus-ring);
+}

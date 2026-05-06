@@ -1,7 +1,14 @@
 import * as React from 'react';
-import { applyThemeVariables, defaultThemePresets, generateThemeFromPrompt, type XuiThemeGenerator, type XuiThemeInput } from '@xui/core';
+import {
+  applyThemeVariables,
+  defaultThemePresets,
+  generateThemeFromPrompt,
+  type XuiThemeGenerator,
+  type XuiThemeInput
+} from '@xui/core';
+import { XuiPromptInput, type XuiPromptInputHandle } from './XuiPromptInput';
 
-type ColorThemeKey = 'accent' | 'secondary' | 'background';
+type ColorThemeKey = 'accent' | 'secondary' | 'background' | 'error' | 'warning' | 'success' | 'info';
 type NumberThemeKey = 'fontScale' | 'radius' | 'density' | 'borderWidth' | 'shadowStrength';
 
 type XuiThemeDesignerProps = Omit<React.HTMLAttributes<HTMLElement>, 'onChange'> & {
@@ -14,6 +21,10 @@ type XuiThemeDesignerProps = Omit<React.HTMLAttributes<HTMLElement>, 'onChange'>
     accent?: string;
     secondary?: string;
     background?: string;
+    error?: string;
+    warning?: string;
+    success?: string;
+    info?: string;
     fontFamily?: string;
     fontScale?: string;
     radius?: string;
@@ -38,6 +49,10 @@ const defaultLabels = {
   accent: '主色',
   secondary: '辅色',
   background: '背景',
+  error: '错误',
+  warning: '警告',
+  success: '成功',
+  info: '信息',
   fontFamily: '字体',
   fontScale: '字号',
   radius: '圆角',
@@ -47,7 +62,7 @@ const defaultLabels = {
   generate: '生成主题',
   generating: '生成中...',
   fallbackNotice: '模型生成失败，已使用本地生成结果。',
-  promptPlaceholder: '例如：warm fintech, forest data tool, paper clean'
+  promptPlaceholder: '描述你想要的主题风格，可粘贴或拖入参考图...'
 };
 
 const fontOptions = [
@@ -68,9 +83,9 @@ export function XuiThemeDesigner({
   ...props
 }: XuiThemeDesignerProps) {
   const [theme, setTheme] = React.useState<XuiThemeInput>(initialTheme);
-  const [prompt, setPrompt] = React.useState(initialPrompt);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [generationError, setGenerationError] = React.useState<string | undefined>();
+  const promptInputRef = React.useRef<XuiPromptInputHandle>(null);
   const text = { ...defaultLabels, ...labels };
 
   React.useEffect(() => {
@@ -80,16 +95,25 @@ export function XuiThemeDesigner({
   }, [onThemeChange, target, theme]);
 
   const handleGenerate = async () => {
+    const prompt = promptInputRef.current?.getPrompt() ?? initialPrompt;
+    const currentImage = promptInputRef.current?.getImage();
+
     setIsGenerating(true);
     setGenerationError(undefined);
 
     try {
-      setTheme(await (themeGenerator ? themeGenerator(prompt) : generateThemeFromPrompt(prompt)));
+      setTheme(await (themeGenerator ? themeGenerator(prompt, { image: currentImage }) : generateThemeFromPrompt(prompt)));
     } catch {
       setTheme(generateThemeFromPrompt(prompt));
       setGenerationError(text.fallbackNotice);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (!isGenerating) {
+      handleGenerate();
     }
   };
 
@@ -120,6 +144,25 @@ export function XuiThemeDesigner({
           [text.accent, 'accent'],
           [text.secondary, 'secondary'],
           [text.background, 'background']
+        ].map(([label, key]) => (
+          <label key={key} className="text-sm">
+            <span className="block text-[var(--xui-muted)]">{label}</span>
+            <input
+              className="mt-[var(--xui-space-2)] h-10 w-full rounded-[var(--xui-radius-lg)] border-[length:var(--xui-border-width)] border-[var(--xui-border)] bg-transparent p-1"
+              type="color"
+              value={theme[key as ColorThemeKey]}
+              onChange={(event) => setTheme((current) => ({ ...current, [key]: event.target.value }))}
+            />
+          </label>
+        ))}
+      </div>
+
+      <div className="mt-[var(--xui-space-4)] grid gap-[var(--xui-space-4)] md:grid-cols-4">
+        {[
+          [text.error, 'error'],
+          [text.warning, 'warning'],
+          [text.success, 'success'],
+          [text.info, 'info']
         ].map(([label, key]) => (
           <label key={key} className="text-sm">
             <span className="block text-[var(--xui-muted)]">{label}</span>
@@ -173,15 +216,17 @@ export function XuiThemeDesigner({
         ))}
       </div>
 
-      <div className="mt-[var(--xui-space-5)] flex flex-col gap-[var(--xui-space-3)] sm:flex-row">
-        <input
-          className="min-w-0 flex-1 rounded-[var(--xui-radius-lg)] border-[length:var(--xui-border-width)] border-[var(--xui-border)] bg-[var(--xui-bg)] px-[var(--xui-space-3)] py-[var(--xui-space-2)] text-[length:var(--xui-font-size-sm)] outline-none focus:border-[var(--xui-accent)] focus:shadow-[var(--xui-focus-ring)]"
-          placeholder={text.promptPlaceholder}
-          value={prompt}
-          onChange={(event) => setPrompt(event.target.value)}
+      <div className="mt-[var(--xui-space-5)] flex flex-col gap-[var(--xui-space-3)] sm:flex-row sm:items-end">
+        <XuiPromptInput
+          ref={promptInputRef}
+          className="min-w-0 flex-1"
+          defaultPrompt={initialPrompt}
+          disabled={isGenerating}
+          labels={{ placeholder: text.promptPlaceholder }}
+          onSubmit={handleSubmit}
         />
         <button
-          className="rounded-[var(--xui-radius-lg)] bg-[var(--xui-accent)] px-[var(--xui-space-4)] py-[var(--xui-space-2)] text-[length:var(--xui-font-size-sm)] font-medium text-[var(--xui-accent-contrast)] shadow-[var(--xui-shadow-sm)] disabled:cursor-not-allowed disabled:opacity-60"
+          className="shrink-0 rounded-[var(--xui-radius-lg)] bg-[var(--xui-accent)] px-[var(--xui-space-4)] py-[var(--xui-space-2)] text-[length:var(--xui-font-size-sm)] font-medium text-[var(--xui-accent-contrast)] shadow-[var(--xui-shadow-sm)] disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isGenerating}
           type="button"
           onClick={handleGenerate}
@@ -193,3 +238,4 @@ export function XuiThemeDesigner({
     </section>
   );
 }
+
