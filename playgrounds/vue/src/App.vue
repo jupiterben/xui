@@ -1,46 +1,97 @@
 <script setup lang="ts">
-import type { XuiThemeGeneratorOptions } from '@xui/core';
-import { XuiButton, XuiFlex, XuiGrid, XuiList, XuiSwitch, XuiThemeDesigner, XuiTree, useToggle } from '@xui/vue';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import type { XuiThemeGeneratorOptions, XuiThemeInput } from '@xui/core';
+import { defaultThemePresets } from '@xui/core';
 import {
-  XUI_THEME_GENERATION_HISTORY_CHANGE_EVENT,
-  readThemeGenerationHistory,
-  saveThemeGenerationHistory,
-  type XuiThemeGenerationHistoryItem,
-  type XuiThemeGenerationOutput
-} from '../../theme-history';
+  XuiButton,
+  XuiConfigProvider,
+  XuiAlert,
+  XuiBadge,
+  XuiDivider,
+  XuiFlex,
+  XuiGrid,
+  XuiList,
+  XuiSpace,
+  XuiSwitch,
+  XuiTag,
+  XuiThemeDesigner,
+  XuiTypographyParagraph,
+  XuiTypographyText,
+  XuiTypographyTitle,
+  XuiTree,
+  useToggle
+} from '@xui/vue';
+import { computed, ref } from 'vue';
+import { saveThemeGenerationHistory, type XuiThemeGenerationOutput } from '../../theme-history';
 
-const state = useToggle(true);
-const history = ref<XuiThemeGenerationHistoryItem[]>(readThemeGenerationHistory());
-const appliedHistory = ref<XuiThemeGenerationHistoryItem | undefined>();
+type ComponentStatus = 'ready' | 'planned';
 
-function refreshHistory() {
-  history.value = readThemeGenerationHistory();
-}
+type CatalogItem = {
+  id: string;
+  name: string;
+  group: string;
+  status: ComponentStatus;
+  summary: string;
+};
 
-function formatHistoryTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return '';
+const catalog: CatalogItem[] = [
+  { id: 'button', name: 'Button', group: 'General', status: 'ready', summary: 'Actions with variants, sizes, disabled and loading states.' },
+  { id: 'typography', name: 'Typography', group: 'General', status: 'ready', summary: 'Text, title, paragraph and common semantic text states.' },
+  { id: 'config-provider', name: 'ConfigProvider', group: 'Other', status: 'ready', summary: 'Theme variables, direction, prefix and shared component size.' },
+  { id: 'flex', name: 'Flex', group: 'Layout', status: 'ready', summary: 'One-dimensional layout primitive for alignment and wrapping.' },
+  { id: 'grid', name: 'Grid', group: 'Layout', status: 'ready', summary: 'Responsive grid composition for dashboard and form surfaces.' },
+  { id: 'space', name: 'Space', group: 'Layout', status: 'ready', summary: 'Consistent inline and vertical spacing between controls.' },
+  { id: 'divider', name: 'Divider', group: 'Layout', status: 'ready', summary: 'Horizontal and vertical separators with optional labels.' },
+  { id: 'switch', name: 'Switch', group: 'Data Entry', status: 'ready', summary: 'Boolean input with controlled and uncontrolled usage.' },
+  { id: 'input', name: 'Input', group: 'Data Entry', status: 'planned', summary: 'Text fields, textareas, affixes, clear button and status states.' },
+  { id: 'select', name: 'Select', group: 'Data Entry', status: 'planned', summary: 'Single, multiple, searchable and async option picking.' },
+  { id: 'list', name: 'List', group: 'Data Display', status: 'ready', summary: 'Headless repeated item rendering with framework-native templates.' },
+  { id: 'badge', name: 'Badge', group: 'Data Display', status: 'ready', summary: 'Status dots and count indicators for objects and navigation.' },
+  { id: 'tag', name: 'Tag', group: 'Data Display', status: 'ready', summary: 'Compact labels with preset colors, custom colors and closing behavior.' },
+  { id: 'tree', name: 'Tree', group: 'Data Display', status: 'ready', summary: 'Nested data display with custom label rendering.' },
+  { id: 'table', name: 'Table', group: 'Data Display', status: 'planned', summary: 'Sorting, filtering, pagination, selection and expandable rows.' },
+  { id: 'modal', name: 'Modal', group: 'Feedback', status: 'planned', summary: 'Dialog overlay with focus trap, keyboard handling and portals.' },
+  { id: 'alert', name: 'Alert', group: 'Feedback', status: 'ready', summary: 'Inline feedback with semantic types, optional descriptions and actions.' },
+  { id: 'tooltip', name: 'Tooltip', group: 'Feedback', status: 'planned', summary: 'Popup positioning foundation shared by popover and dropdown.' }
+];
+
+const listItems = [
+  { id: 'install', label: 'Install', description: 'Import the Vue adapter package.' },
+  { id: 'compose', label: 'Compose', description: 'Use slots to own the final DOM.' },
+  { id: 'ship', label: 'Ship', description: 'Reuse shared behavior from @xui/core.' }
+];
+
+const treeNodes = [
+  {
+    id: 'packages',
+    label: 'packages',
+    children: [
+      { id: 'core', label: '@xui/core' },
+      { id: 'react', label: '@xui/react' },
+      { id: 'vue', label: '@xui/vue' }
+    ]
+  },
+  {
+    id: 'playgrounds',
+    label: 'playgrounds',
+    children: [
+      { id: 'react-playground', label: 'react' },
+      { id: 'vue-playground', label: 'vue' }
+    ]
   }
+];
 
-  return new Intl.DateTimeFormat(undefined, {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date);
-}
+const activeId = ref('button');
+const theme = ref<XuiThemeInput>(defaultThemePresets[0]);
+const switchState = useToggle(false);
 
-onMounted(() => {
-  window.addEventListener(XUI_THEME_GENERATION_HISTORY_CHANGE_EVENT, refreshHistory);
-  window.addEventListener('storage', refreshHistory);
-});
+const groupedCatalog = computed(() =>
+  catalog.reduce<Record<string, CatalogItem[]>>((result, item) => {
+    result[item.group] = [...(result[item.group] ?? []), item];
+    return result;
+  }, {})
+);
 
-onBeforeUnmount(() => {
-  window.removeEventListener(XUI_THEME_GENERATION_HISTORY_CHANGE_EVENT, refreshHistory);
-  window.removeEventListener('storage', refreshHistory);
-});
+const activeItem = computed(() => catalog.find((item) => item.id === activeId.value) ?? catalog[0]);
 
 async function generateThemeWithModel(prompt: string, options?: XuiThemeGeneratorOptions) {
   const response = await fetch('/api/theme', {
@@ -57,215 +108,201 @@ async function generateThemeWithModel(prompt: string, options?: XuiThemeGenerato
   saveThemeGenerationHistory('vue', prompt, options?.image, payload);
   return payload.theme;
 }
-
-const listItems = [
-  { id: 'install', label: 'Install', description: '引入对应框架适配包' },
-  { id: 'compose', label: 'Compose', description: '用 slot 自定义结构和样式' },
-  { id: 'ship', label: 'Ship', description: '复用 core 中的交互逻辑' }
-];
-
-const treeNodes = [
-  {
-    id: 'packages',
-    label: 'packages',
-    children: [
-      { id: 'core', label: '@xui/core' },
-      { id: 'vue', label: '@xui/vue' },
-      { id: 'react', label: '@xui/react' }
-    ]
-  },
-  {
-    id: 'playgrounds',
-    label: 'playgrounds',
-    children: [
-      { id: 'vue-playground', label: 'vue' },
-      { id: 'react-playground', label: 'react' }
-    ]
-  }
-];
 </script>
 
 <template>
-  <main class="mx-auto min-h-screen max-w-7xl px-[var(--xui-space-6)] py-12">
-    <header class="mb-[var(--xui-space-6)]">
-      <p class="text-xs uppercase tracking-[0.35em] text-[var(--xui-accent)]">xui vue playground</p>
-      <h1 class="mt-3 text-4xl font-bold">Vue Headless UI Demo</h1>
-      <p class="mt-3 text-[var(--xui-muted)]">
-        通过 Tailwind 自定义样式，演示 <code>@xui/vue</code> 的无样式交互逻辑。
-      </p>
-    </header>
+  <XuiConfigProvider class="min-h-screen" :theme="theme">
+    <main class="xui-playground-shell">
+      <aside class="xui-playground-sidebar">
+        <div>
+          <p class="xui-playground-eyebrow">xui vue playground</p>
+          <h1>Ant Design Component Catalog</h1>
+          <p class="xui-playground-copy">A working catalog for implementing Ant-style components across React and Vue adapters.</p>
+        </div>
 
-    <div class="grid gap-[var(--xui-space-6)] lg:grid-cols-[minmax(360px,420px)_minmax(0,1fr)] lg:items-start">
-      <aside class="min-w-0 space-y-[var(--xui-space-6)]">
-        <XuiThemeDesigner
-          :key="appliedHistory?.id ?? 'default-theme-designer'"
-          class="rounded-[var(--xui-radius-2xl)] border-[length:var(--xui-border-width)] border-[var(--xui-border)] bg-[var(--xui-surface)] p-[var(--xui-space-5)] shadow-[var(--xui-shadow-md)]"
-          :initial-prompt="appliedHistory?.input.prompt"
-          :initial-theme="appliedHistory?.output.theme"
-          :theme-generator="generateThemeWithModel"
-        />
-
-        <section class="rounded-[var(--xui-radius-2xl)] border-[length:var(--xui-border-width)] border-[var(--xui-border)] bg-[var(--xui-surface)] p-[var(--xui-space-5)] shadow-[var(--xui-shadow-md)]">
-          <div class="flex flex-wrap items-start justify-between gap-[var(--xui-space-3)]">
-            <div>
-              <p class="text-xs font-medium uppercase tracking-[0.24em] text-[var(--xui-accent)]">History</p>
-              <h2 class="mt-2 text-xl font-semibold">生成历史</h2>
-            </div>
-            <span class="rounded-full border border-[var(--xui-border)] px-2.5 py-1 text-xs text-[var(--xui-muted)]">
-              {{ history.length }} 条
-            </span>
+        <nav class="xui-playground-nav" aria-label="Components">
+          <div v-for="(items, group) in groupedCatalog" :key="group">
+            <p class="xui-playground-nav__group">{{ group }}</p>
+            <button v-for="item in items" :key="item.id" :class="{ 'is-active': activeId === item.id }" type="button" @click="activeId = item.id">
+              <span>{{ item.name }}</span>
+              <span class="xui-playground-status" :class="`xui-playground-status--${item.status}`">{{ item.status }}</span>
+            </button>
           </div>
-
-          <div v-if="history.length" class="mt-[var(--xui-space-4)] grid gap-[var(--xui-space-3)]">
-            <article
-              v-for="item in history"
-              :key="item.id"
-              class="rounded-[var(--xui-radius-lg)] border-[length:var(--xui-border-width)] bg-[var(--xui-bg)] p-[var(--xui-space-3)] transition"
-              :class="appliedHistory?.id === item.id ? 'border-[var(--xui-accent)] shadow-[var(--xui-focus-ring)]' : 'border-[var(--xui-border)]'"
-            >
-              <div class="flex flex-wrap items-start justify-between gap-[var(--xui-space-3)]">
-                <div class="min-w-0 flex-1">
-                  <div class="flex flex-wrap items-center gap-2 text-xs text-[var(--xui-muted)]">
-                    <span>{{ formatHistoryTime(item.createdAt) }}</span>
-                    <span class="rounded-full bg-[var(--xui-surface-muted)] px-2 py-0.5">{{ item.playground }}</span>
-                    <span v-if="item.output.source">{{ item.output.source }}</span>
-                  </div>
-                  <p class="mt-2 truncate text-sm font-medium">{{ item.output.theme.name }}</p>
-                  <p class="mt-1 line-clamp-2 text-xs text-[var(--xui-muted)]">{{ item.input.prompt }}</p>
-                </div>
-                <button
-                  class="shrink-0 rounded-[var(--xui-radius-lg)] border-[length:var(--xui-border-width)] border-[var(--xui-border)] px-[var(--xui-space-3)] py-[var(--xui-space-2)] text-[length:var(--xui-font-size-sm)] hover:bg-[var(--xui-surface-muted)] focus:shadow-[var(--xui-focus-ring)]"
-                  type="button"
-                  @click="appliedHistory = item"
-                >
-                  应用
-                </button>
-              </div>
-              <div class="mt-[var(--xui-space-3)] flex gap-2">
-                <span
-                  v-for="color in [item.output.theme.accent, item.output.theme.secondary, item.output.theme.background]"
-                  :key="color"
-                  class="h-5 w-10 rounded-[var(--xui-radius-sm)] border border-[var(--xui-border)]"
-                  :style="{ backgroundColor: color }"
-                  :title="color"
-                />
-              </div>
-            </article>
-          </div>
-          <p v-else class="mt-[var(--xui-space-4)] text-sm text-[var(--xui-muted)]">暂无生成历史。</p>
-        </section>
+        </nav>
       </aside>
 
-      <div class="min-w-0 space-y-[var(--xui-space-6)]">
-        <section class="rounded-[var(--xui-radius-2xl)] border-[length:var(--xui-border-width)] border-[var(--xui-border)] bg-[var(--xui-surface)] p-[var(--xui-space-6)] shadow-[var(--xui-shadow-md)]">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <p class="text-xs font-medium uppercase tracking-[0.24em] text-[var(--xui-accent)]">Vue</p>
-              <h2 class="mt-2 text-xl font-semibold">XuiButton</h2>
-            </div>
-            <span class="rounded-full border border-[var(--xui-border)] px-2.5 py-1 text-xs text-[var(--xui-accent)]">
-              @xui/vue
-            </span>
+      <section class="xui-playground-content">
+        <XuiThemeDesigner
+          class="xui-playground-panel"
+          :initial-theme="theme"
+          :theme-generator="generateThemeWithModel"
+          @theme-change="theme = $event"
+        />
+
+        <header class="xui-playground-component-header">
+          <div>
+            <p class="xui-playground-eyebrow">{{ activeItem.group }}</p>
+            <h2>{{ activeItem.name }}</h2>
+            <p>{{ activeItem.summary }}</p>
+          </div>
+          <span class="xui-playground-status" :class="`xui-playground-status--${activeItem.status}`">{{ activeItem.status }}</span>
+        </header>
+
+        <section class="xui-playground-panel">
+          <div class="xui-playground-panel__header">
+            <p>Vue</p>
+            <h2>Xui{{ activeItem.name }}</h2>
           </div>
 
-          <p class="mt-4 text-sm text-[var(--xui-muted)]">支持 Hover、Active 状态切换。</p>
+          <div class="xui-playground-panel__body">
+            <template v-if="activeId === 'config-provider'">
+              <p class="xui-playground-copy">
+                This page is wrapped in <code>XuiConfigProvider</code>. The theme designer updates the same token aliases used by future Ant-style components.
+              </p>
+              <XuiFlex wrap gap="var(--xui-space-3)" class="mt-5">
+                <span v-for="token in ['--xui-color-primary', '--xui-color-bg-container', '--xui-color-border', '--xui-control-height']" :key="token" class="xui-token-pill">
+                  {{ token }}
+                </span>
+              </XuiFlex>
+            </template>
 
-          <div class="mt-[var(--xui-space-5)] flex flex-wrap items-center gap-[var(--xui-space-3)]">
-            <XuiButton variant="primary">Primary</XuiButton>
-            <XuiButton variant="secondary">Secondary</XuiButton>
-            <XuiButton variant="outline">Outline</XuiButton>
-            <XuiButton variant="ghost">Ghost</XuiButton>
-          </div>
+            <template v-else-if="activeId === 'button'">
+              <XuiFlex wrap align="center" gap="var(--xui-space-3)">
+                <XuiButton variant="primary">Primary</XuiButton>
+                <XuiButton variant="secondary">Secondary</XuiButton>
+                <XuiButton variant="outline">Outline</XuiButton>
+                <XuiButton variant="ghost">Ghost</XuiButton>
+              </XuiFlex>
+              <XuiFlex wrap align="center" gap="var(--xui-space-3)" class="mt-4">
+                <XuiButton size="sm">Small</XuiButton>
+                <XuiButton size="md">Middle</XuiButton>
+                <XuiButton size="lg">Large</XuiButton>
+                <XuiButton disabled>Disabled</XuiButton>
+              </XuiFlex>
+            </template>
 
-          <div class="mt-[var(--xui-space-4)] flex flex-wrap items-center gap-[var(--xui-space-3)]">
-            <XuiButton size="sm">Small</XuiButton>
-            <XuiButton size="md">Medium</XuiButton>
-            <XuiButton size="lg">Large</XuiButton>
-          </div>
+            <template v-else-if="activeId === 'typography'">
+              <XuiTypographyTitle :level="3">Build readable product surfaces</XuiTypographyTitle>
+              <XuiTypographyParagraph>
+                Typography primitives cover titles, paragraphs and inline text states without forcing layout decisions into the component.
+              </XuiTypographyParagraph>
+              <XuiSpace wrap size="middle" class="mt-4">
+                <XuiTypographyText strong>Strong</XuiTypographyText>
+                <XuiTypographyText type="secondary">Secondary</XuiTypographyText>
+                <XuiTypographyText type="success">Success</XuiTypographyText>
+                <XuiTypographyText type="warning">Warning</XuiTypographyText>
+                <XuiTypographyText type="danger">Danger</XuiTypographyText>
+                <XuiTypographyText code>code</XuiTypographyText>
+                <XuiTypographyText keyboard>⌘K</XuiTypographyText>
+                <XuiTypographyText mark>Marked</XuiTypographyText>
+              </XuiSpace>
+            </template>
 
-          <div class="mt-[var(--xui-space-4)] flex flex-wrap items-center gap-[var(--xui-space-3)]">
-            <XuiButton disabled>Disabled</XuiButton>
-            <XuiButton variant="outline" disabled>Disabled</XuiButton>
+            <template v-else-if="activeId === 'switch'">
+              <XuiSwitch v-slot="{ checked }">
+                <span class="xui-switch-demo" :class="{ 'xui-switch-demo--checked': checked }">{{ checked ? 'ON' : 'OFF' }}</span>
+              </XuiSwitch>
+              <XuiFlex align="center" gap="var(--xui-space-3)" class="mt-5">
+                <XuiButton variant="outline" @click="switchState.toggle">Toggle hook</XuiButton>
+                <span class="xui-playground-copy">Hook state: {{ switchState.checked ? 'ON' : 'OFF' }}</span>
+              </XuiFlex>
+            </template>
+
+            <template v-else-if="activeId === 'list'">
+              <XuiList class="grid gap-3" :items="listItems" v-slot="{ item, index }">
+                <div class="xui-demo-row">
+                  <strong>{{ index + 1 }}. {{ item.label }}</strong>
+                  <span>{{ item.description }}</span>
+                </div>
+              </XuiList>
+            </template>
+
+            <template v-else-if="activeId === 'badge'">
+              <XuiSpace wrap size="large" align="center">
+                <XuiBadge :count="5"><span class="xui-demo-avatar">A</span></XuiBadge>
+                <XuiBadge :count="128" :overflow-count="99"><span class="xui-demo-avatar">B</span></XuiBadge>
+                <XuiBadge dot><span class="xui-demo-avatar">C</span></XuiBadge>
+                <XuiBadge status="success" text="Available" />
+                <XuiBadge status="processing" text="Running" />
+                <XuiBadge status="error" text="Blocked" />
+              </XuiSpace>
+            </template>
+
+            <template v-else-if="activeId === 'tag'">
+              <XuiSpace wrap size="middle">
+                <XuiTag>Default</XuiTag>
+                <XuiTag color="success">Success</XuiTag>
+                <XuiTag color="processing">Processing</XuiTag>
+                <XuiTag color="warning">Warning</XuiTag>
+                <XuiTag color="error">Error</XuiTag>
+                <XuiTag color="#7c3aed" closable>Custom</XuiTag>
+              </XuiSpace>
+            </template>
+
+            <template v-else-if="activeId === 'alert'">
+              <div class="grid gap-3">
+                <XuiAlert show-icon type="success" message="Deployment completed" description="All packages built and playground assets were generated." />
+                <XuiAlert show-icon type="warning" message="Quota almost full">
+                  <template #action>
+                    <XuiButton size="sm" variant="outline">Review</XuiButton>
+                  </template>
+                </XuiAlert>
+                <XuiAlert closable show-icon type="error" message="Closable alert" description="Dismiss this alert to verify local component state." />
+              </div>
+            </template>
+
+            <template v-else-if="activeId === 'flex'">
+              <XuiFlex wrap align="center" gap="var(--xui-space-3)">
+                <span v-for="item in ['Start', 'Middle', 'End', 'Wrap']" :key="item" class="xui-token-pill">{{ item }}</span>
+              </XuiFlex>
+            </template>
+
+            <template v-else-if="activeId === 'grid'">
+              <XuiGrid :columns="3" gap="var(--xui-space-3)">
+                <div v-for="item in ['A', 'B', 'C', 'D', 'E', 'F']" :key="item" class="xui-demo-tile">{{ item }}</div>
+              </XuiGrid>
+            </template>
+
+            <template v-else-if="activeId === 'space'">
+              <div class="grid gap-5">
+                <XuiSpace wrap size="middle">
+                  <XuiButton>Save</XuiButton>
+                  <XuiButton variant="outline">Preview</XuiButton>
+                  <XuiButton variant="ghost">Cancel</XuiButton>
+                </XuiSpace>
+                <XuiSpace direction="vertical" size="small" split="•">
+                  <span>Account</span>
+                  <span>Billing</span>
+                  <span>Security</span>
+                </XuiSpace>
+              </div>
+            </template>
+
+            <template v-else-if="activeId === 'divider'">
+              <div>
+                <span>Section before divider</span>
+                <XuiDivider orientation="left">Details</XuiDivider>
+                <span>Section after divider</span>
+                <XuiSpace class="mt-5" split="|">
+                  <span>Overview</span>
+                  <span>Usage</span>
+                  <span>Settings</span>
+                </XuiSpace>
+              </div>
+            </template>
+
+            <template v-else-if="activeId === 'tree'">
+              <XuiTree class="space-y-2 text-sm" :nodes="treeNodes" v-slot="{ node, depth }">
+                <span :class="depth === 0 ? 'xui-token-pill' : 'text-[var(--xui-muted)]'">{{ node.label }}</span>
+              </XuiTree>
+            </template>
+
+            <p v-else class="xui-playground-copy">
+              Planned component. This slot is reserved for the next implementation phase so React and Vue demos stay structurally aligned.
+            </p>
           </div>
         </section>
-
-        <section class="rounded-[var(--xui-radius-2xl)] border-[length:var(--xui-border-width)] border-[var(--xui-border)] bg-[var(--xui-surface)] p-[var(--xui-space-6)] shadow-[var(--xui-shadow-md)]">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <p class="text-xs font-medium uppercase tracking-[0.24em] text-[var(--xui-accent)]">Vue</p>
-              <h2 class="mt-2 text-xl font-semibold">XuiSwitch</h2>
-            </div>
-            <span class="rounded-full border border-[var(--xui-border)] px-2.5 py-1 text-xs text-[var(--xui-accent)]">
-              @xui/vue
-            </span>
-          </div>
-
-          <p class="mt-4 text-sm text-[var(--xui-muted)]">Vue 适配层复用同一套 core toggle 逻辑。</p>
-
-          <XuiSwitch v-slot="{ checked }">
-            <span
-              class="mt-[var(--xui-space-5)] inline-flex items-center rounded-[var(--xui-radius-full)] px-[var(--xui-space-4)] py-[var(--xui-space-2)] text-[length:var(--xui-font-size-sm)] font-medium transition"
-              :class="checked ? 'bg-[var(--xui-accent)] text-[var(--xui-accent-contrast)]' : 'bg-[var(--xui-surface-muted)] text-[var(--xui-text)]'"
-            >
-              {{ checked ? 'ON' : 'OFF' }}
-            </span>
-          </XuiSwitch>
-
-          <div class="mt-[var(--xui-space-6)] flex flex-wrap items-center gap-[var(--xui-space-3)]">
-            <button
-              class="rounded-[var(--xui-radius-lg)] border-[length:var(--xui-border-width)] border-[var(--xui-border)] px-[var(--xui-space-3)] py-[var(--xui-space-2)] text-[length:var(--xui-font-size-sm)] hover:bg-[var(--xui-surface-muted)] focus:shadow-[var(--xui-focus-ring)]"
-              type="button"
-              @click="state.toggle"
-            >
-              Toggle via useToggle
-            </button>
-            <span class="text-sm text-[var(--xui-muted)]">当前: {{ state.checked ? 'ON' : 'OFF' }}</span>
-          </div>
-        </section>
-
-        <XuiGrid min-column-width="240px" gap="var(--xui-space-4)">
-          <section class="rounded-[var(--xui-radius-2xl)] border-[length:var(--xui-border-width)] border-[var(--xui-border)] bg-[var(--xui-surface)] p-[var(--xui-space-6)] shadow-[var(--xui-shadow-md)]">
-            <p class="text-xs font-medium uppercase tracking-[0.24em] text-[var(--xui-accent)]">List</p>
-            <h2 class="mt-2 text-xl font-semibold">XuiList</h2>
-            <XuiList class="mt-5 space-y-3" :items="listItems" v-slot="{ item, index }">
-              <div class="rounded-lg border border-[var(--xui-border)] bg-[var(--xui-bg)] p-3">
-                <p class="text-sm font-medium">{{ index + 1 }}. {{ item.label }}</p>
-                <p class="mt-1 text-xs text-[var(--xui-muted)]">{{ item.description }}</p>
-              </div>
-            </XuiList>
-          </section>
-
-          <section class="rounded-[var(--xui-radius-2xl)] border-[length:var(--xui-border-width)] border-[var(--xui-border)] bg-[var(--xui-surface)] p-[var(--xui-space-6)] shadow-[var(--xui-shadow-md)]">
-            <p class="text-xs font-medium uppercase tracking-[0.24em] text-[var(--xui-accent)]">Flex</p>
-            <h2 class="mt-2 text-xl font-semibold">XuiFlex</h2>
-            <XuiFlex class="mt-5" wrap align="center" gap="0.75rem">
-              <span class="rounded-full bg-[var(--xui-accent)] px-3 py-1 text-sm text-[var(--xui-accent-contrast)]">Start</span>
-              <span class="rounded-full bg-[var(--xui-surface-muted)] px-3 py-1 text-sm text-[var(--xui-text)]">Middle</span>
-              <span class="rounded-full bg-[var(--xui-secondary)] px-3 py-1 text-sm text-[var(--xui-secondary-contrast)]">End</span>
-            </XuiFlex>
-          </section>
-
-          <section class="rounded-[var(--xui-radius-2xl)] border-[length:var(--xui-border-width)] border-[var(--xui-border)] bg-[var(--xui-surface)] p-[var(--xui-space-6)] shadow-[var(--xui-shadow-md)]">
-            <p class="text-xs font-medium uppercase tracking-[0.24em] text-[var(--xui-accent)]">Grid</p>
-            <h2 class="mt-2 text-xl font-semibold">XuiGrid</h2>
-            <XuiGrid class="mt-5" :columns="3" gap="0.75rem">
-              <div v-for="item in ['A', 'B', 'C', 'D', 'E', 'F']" :key="item" class="rounded-lg bg-[var(--xui-surface-muted)] p-4 text-center text-sm">
-                {{ item }}
-              </div>
-            </XuiGrid>
-          </section>
-
-          <section class="rounded-[var(--xui-radius-2xl)] border-[length:var(--xui-border-width)] border-[var(--xui-border)] bg-[var(--xui-surface)] p-[var(--xui-space-6)] shadow-[var(--xui-shadow-md)]">
-            <p class="text-xs font-medium uppercase tracking-[0.24em] text-[var(--xui-accent)]">Tree</p>
-            <h2 class="mt-2 text-xl font-semibold">XuiTree</h2>
-            <XuiTree class="mt-5 space-y-2 text-sm" :nodes="treeNodes" v-slot="{ node, depth }">
-              <span class="inline-flex rounded-md px-2 py-1" :class="depth === 0 ? 'bg-[var(--xui-surface-muted)] text-[var(--xui-text)]' : 'text-[var(--xui-muted)]'">
-                {{ node.label }}
-              </span>
-            </XuiTree>
-          </section>
-        </XuiGrid>
-      </div>
-    </div>
-  </main>
+      </section>
+    </main>
+  </XuiConfigProvider>
 </template>

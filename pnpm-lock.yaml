@@ -41,6 +41,9 @@ importers:
 
   playgrounds/react:
     dependencies:
+      '@xui/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@xui/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -81,6 +84,9 @@ importers:
 
   playgrounds/vue:
     dependencies:
+      '@xui/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@xui/vue':
         specifier: workspace:*
         version: link:../../packages/vue

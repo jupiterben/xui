@@ -84,6 +84,34 @@ export type XuiThemeVariables = {
   '--xui-focus-ring': string;
   '--xui-transition-fast': string;
   '--xui-transition-base': string;
+  '--xui-control-height-sm': string;
+  '--xui-control-height': string;
+  '--xui-control-height-lg': string;
+  '--xui-color-primary': string;
+  '--xui-color-primary-hover': string;
+  '--xui-color-primary-active': string;
+  '--xui-color-primary-bg': string;
+  '--xui-color-fill': string;
+  '--xui-color-fill-secondary': string;
+  '--xui-color-text': string;
+  '--xui-color-text-secondary': string;
+  '--xui-color-text-disabled': string;
+  '--xui-color-bg-container': string;
+  '--xui-color-bg-layout': string;
+  '--xui-color-border': string;
+  '--xui-box-shadow': string;
+  '--xui-box-shadow-secondary': string;
+};
+
+export type XuiComponentSize = 'small' | 'middle' | 'large';
+
+export type XuiDirection = 'ltr' | 'rtl';
+
+export type XuiConfig = {
+  componentSize?: XuiComponentSize;
+  direction?: XuiDirection;
+  prefixCls?: string;
+  theme?: XuiThemeInput;
 };
 
 export const defaultThemePresets: XuiThemeInput[] = [
@@ -297,13 +325,24 @@ export function resolveThemeVariables(theme: XuiThemeInput): XuiThemeVariables {
   const radius = Math.max(0, theme.radius);
   const fontScale = Math.max(0.86, Math.min(1.24, theme.fontScale));
 
+  const surface = mixColor(theme.background, dark ? '#ffffff' : '#000000', 0.08);
+  const surfaceMuted = mixColor(theme.background, dark ? '#ffffff' : '#000000', 0.14);
+  const border = mixColor(theme.background, dark ? '#ffffff' : '#000000', 0.2);
+  const muted = mixColor(text, theme.background, 0.42);
+  const primaryBg = mixColor(theme.accent, theme.background, 0.82);
+  const primaryHover = mixColor(theme.accent, dark ? '#ffffff' : '#000000', dark ? 0.12 : 0.08);
+  const primaryActive = mixColor(theme.accent, dark ? '#000000' : '#000000', dark ? 0.2 : 0.14);
+  const shadowSm = shadow(0.12 * shadowBase, 1, 2);
+  const shadowMd = shadow(0.18 * shadowBase, 8, 24, -8);
+  const shadowLg = shadow(0.24 * shadowBase, 18, 48, -18);
+
   return {
     '--xui-bg': theme.background,
-    '--xui-surface': mixColor(theme.background, dark ? '#ffffff' : '#000000', 0.08),
-    '--xui-surface-muted': mixColor(theme.background, dark ? '#ffffff' : '#000000', 0.14),
-    '--xui-border': mixColor(theme.background, dark ? '#ffffff' : '#000000', 0.2),
+    '--xui-surface': surface,
+    '--xui-surface-muted': surfaceMuted,
+    '--xui-border': border,
     '--xui-text': text,
-    '--xui-muted': mixColor(text, theme.background, 0.42),
+    '--xui-muted': muted,
     '--xui-accent': theme.accent,
     '--xui-accent-contrast': getColorLuminance(theme.accent) > 0.55 ? '#0f172a' : '#ffffff',
     '--xui-accent-soft': mixColor(theme.accent, theme.background, 0.72),
@@ -347,12 +386,29 @@ export function resolveThemeVariables(theme: XuiThemeInput): XuiThemeVariables {
     '--xui-space-5': scalePx(20, density),
     '--xui-space-6': scalePx(24, density),
     '--xui-border-width': `${theme.borderWidth}px`,
-    '--xui-shadow-sm': shadow(0.12 * shadowBase, 1, 2),
-    '--xui-shadow-md': shadow(0.18 * shadowBase, 8, 24, -8),
-    '--xui-shadow-lg': shadow(0.24 * shadowBase, 18, 48, -18),
+    '--xui-shadow-sm': shadowSm,
+    '--xui-shadow-md': shadowMd,
+    '--xui-shadow-lg': shadowLg,
     '--xui-focus-ring': `0 0 0 3px ${mixColor(theme.accent, theme.background, 0.35)}`,
     '--xui-transition-fast': '120ms ease',
-    '--xui-transition-base': '180ms ease'
+    '--xui-transition-base': '180ms ease',
+    '--xui-control-height-sm': scalePx(24, density),
+    '--xui-control-height': scalePx(32, density),
+    '--xui-control-height-lg': scalePx(40, density),
+    '--xui-color-primary': theme.accent,
+    '--xui-color-primary-hover': primaryHover,
+    '--xui-color-primary-active': primaryActive,
+    '--xui-color-primary-bg': primaryBg,
+    '--xui-color-fill': surfaceMuted,
+    '--xui-color-fill-secondary': mixColor(surfaceMuted, theme.background, 0.38),
+    '--xui-color-text': text,
+    '--xui-color-text-secondary': muted,
+    '--xui-color-text-disabled': mixColor(muted, theme.background, 0.34),
+    '--xui-color-bg-container': surface,
+    '--xui-color-bg-layout': theme.background,
+    '--xui-color-border': border,
+    '--xui-box-shadow': shadowLg,
+    '--xui-box-shadow-secondary': shadowMd
   };
 }
 

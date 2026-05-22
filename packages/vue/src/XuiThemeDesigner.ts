@@ -63,7 +63,7 @@ export const XuiThemeDesigner = defineComponent({
   emits: {
     themeChange: (_theme: XuiThemeInput) => true
   },
-  setup(props, { emit }) {
+  setup(props, { attrs, emit }) {
     const prompt = ref(props.initialPrompt);
     const theme = reactive<XuiThemeInput>({ ...props.initialTheme });
     const themeImage = ref<XuiThemeImage | undefined>();
@@ -153,7 +153,7 @@ export const XuiThemeDesigner = defineComponent({
       const imageFromUrl = imageUrl.value.trim() && isRemoteImageUrl(imageUrl.value) ? { url: imageUrl.value.trim(), name: imageUrl.value.trim() } : undefined;
       const currentImage = themeImage.value ?? imageFromUrl;
 
-      return h('section', [
+      return h('section', attrs, [
         h('div', { class: 'flex flex-wrap items-start justify-between gap-[var(--xui-space-4)]' }, [
           h('div', [
             h('p', { class: 'text-xs font-medium uppercase tracking-[0.24em] text-[var(--xui-accent)]' }, labels.eyebrow),
