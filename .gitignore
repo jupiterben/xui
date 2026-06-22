@@ -37,3 +37,4 @@ coverage/
 # Temp
 *.tmp
 *.temp
+/pnpm-lock.yaml

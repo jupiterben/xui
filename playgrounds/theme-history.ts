@@ -1,27 +1,27 @@
-import type { XuiThemeImage, XuiThemeInput } from '../packages/core/src/theme';
+import type { xThemeImage, xThemeInput } from '../packages/core/src/theme';
 
 export const XUI_THEME_GENERATION_HISTORY_STORAGE_KEY = 'xui:theme-generation-history';
 export const XUI_THEME_GENERATION_HISTORY_CHANGE_EVENT = 'xui:theme-generation-history-change';
 
 const HISTORY_LIMIT = 30;
 
-export type XuiThemeGenerationPlayground = 'react' | 'vue';
+export type xThemeGenerationPlayground = 'react' | 'vue';
 
-export type XuiThemeGenerationOutput = {
+export type xThemeGenerationOutput = {
   source?: 'local' | 'model' | 'fallback';
-  theme: XuiThemeInput;
+  theme: xThemeInput;
   error?: string;
 };
 
-export type XuiThemeGenerationHistoryItem = {
+export type xThemeGenerationHistoryItem = {
   id: string;
   createdAt: string;
-  playground: XuiThemeGenerationPlayground;
+  playground: xThemeGenerationPlayground;
   input: {
     prompt: string;
-    image?: XuiThemeImage;
+    image?: xThemeImage;
   };
-  output: XuiThemeGenerationOutput;
+  output: xThemeGenerationOutput;
 };
 
 function getStorage() {
@@ -40,7 +40,7 @@ function createHistoryId() {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function normalizeImage(image: XuiThemeImage | undefined): XuiThemeImage | undefined {
+function normalizeImage(image: xThemeImage | undefined): xThemeImage | undefined {
   if (!image) {
     return undefined;
   }
@@ -53,7 +53,7 @@ function normalizeImage(image: XuiThemeImage | undefined): XuiThemeImage | undef
   };
 }
 
-function removeInlineImages(history: XuiThemeGenerationHistoryItem[]) {
+function removeInlineImages(history: xThemeGenerationHistoryItem[]) {
   return history.map((item) => ({
     ...item,
     input: {
@@ -68,7 +68,7 @@ function removeInlineImages(history: XuiThemeGenerationHistoryItem[]) {
   }));
 }
 
-export function readThemeGenerationHistory(): XuiThemeGenerationHistoryItem[] {
+export function readThemeGenerationHistory(): xThemeGenerationHistoryItem[] {
   const storage = getStorage();
   if (!storage) {
     return [];
@@ -77,24 +77,24 @@ export function readThemeGenerationHistory(): XuiThemeGenerationHistoryItem[] {
   try {
     const value = storage.getItem(XUI_THEME_GENERATION_HISTORY_STORAGE_KEY);
     const parsed = value ? JSON.parse(value) : [];
-    return Array.isArray(parsed) ? (parsed as XuiThemeGenerationHistoryItem[]) : [];
+    return Array.isArray(parsed) ? (parsed as xThemeGenerationHistoryItem[]) : [];
   } catch {
     return [];
   }
 }
 
 export function saveThemeGenerationHistory(
-  playground: XuiThemeGenerationPlayground,
+  playground: xThemeGenerationPlayground,
   prompt: string,
-  image: XuiThemeImage | undefined,
-  output: XuiThemeGenerationOutput
+  image: xThemeImage | undefined,
+  output: xThemeGenerationOutput
 ) {
   const storage = getStorage();
   if (!storage) {
     return;
   }
 
-  const history: XuiThemeGenerationHistoryItem[] = [
+  const history: xThemeGenerationHistoryItem[] = [
     {
       id: createHistoryId(),
       createdAt: new Date().toISOString(),

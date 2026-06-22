@@ -3,13 +3,13 @@ import {
   generateThemeFromPrompt,
   normalizeThemeInput,
   themeJsonSchema,
-  type XuiThemeImage,
-  type XuiThemeInput,
+  type xThemeImage,
+  type xThemeInput,
 } from "../packages/core/src/theme";
 
 type ThemeApiResponse = {
   source: "local" | "model" | "fallback";
-  theme: XuiThemeInput;
+  theme: xThemeInput;
   error?: string;
 };
 
@@ -195,12 +195,12 @@ function isNumberInRange(value: unknown, min: number, max: number) {
   );
 }
 
-function assertThemePayload(value: unknown): asserts value is XuiThemeInput {
+function assertThemePayload(value: unknown): asserts value is xThemeInput {
   if (typeof value !== "object" || !value) {
     throw new Error("Theme model JSON is not an object");
   }
 
-  const theme = value as Partial<XuiThemeInput>;
+  const theme = value as Partial<xThemeInput>;
   const invalidFields = [
     typeof theme.name === "string" && theme.name.trim() ? undefined : "name",
     isHexColor(theme.accent) ? undefined : "accent",
@@ -227,12 +227,12 @@ function assertThemePayload(value: unknown): asserts value is XuiThemeInput {
   }
 }
 
-function normalizeThemeImage(value: unknown): XuiThemeImage | undefined {
+function normalizeThemeImage(value: unknown): xThemeImage | undefined {
   if (typeof value !== "object" || !value) {
     return undefined;
   }
 
-  const input = value as Partial<XuiThemeImage>;
+  const input = value as Partial<xThemeImage>;
   const dataUrl =
     typeof input.dataUrl === "string" &&
     /^data:image\/(png|jpe?g|webp);base64,/i.test(input.dataUrl)
@@ -278,7 +278,7 @@ function getBaseUrlCandidates(baseUrl: string) {
   return baseUrl.endsWith("/v1") ? [baseUrl] : [baseUrl, `${baseUrl}/v1`];
 }
 
-function buildUserText(prompt: string, image?: XuiThemeImage) {
+function buildUserText(prompt: string, image?: xThemeImage) {
   return `Generate an xui theme from this prompt: ${prompt}${image ? "\nUse the uploaded image as the primary visual reference for palette, density, radius, and typography tone." : ""}`;
 }
 
@@ -306,7 +306,7 @@ function parseThemeModelPayload(payload: unknown) {
 
 async function generateWithResponsesApi(
   prompt: string,
-  image: XuiThemeImage | undefined,
+  image: xThemeImage | undefined,
   env: ThemeApiEnv,
   requestId: number,
 ) {
@@ -412,7 +412,7 @@ async function generateWithResponsesApi(
 
 async function generateWithChatCompletionsApi(
   prompt: string,
-  image: XuiThemeImage | undefined,
+  image: xThemeImage | undefined,
   env: ThemeApiEnv,
   requestId: number,
 ) {
@@ -533,7 +533,7 @@ function shouldRetryWithChatCompletions(error: unknown) {
 
 async function generateWithModel(
   prompt: string,
-  image: XuiThemeImage | undefined,
+  image: xThemeImage | undefined,
   env: ThemeApiEnv,
   requestId: number,
 ) {

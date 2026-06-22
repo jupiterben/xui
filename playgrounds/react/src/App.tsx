@@ -1,43 +1,21 @@
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  XuiAlert,
-  XuiBadge,
-  XuiButton,
-  XuiDivider,
-  XuiSpace,
-  XuiSwitch,
-  XuiTag,
-  XuiThemeDesigner,
-  XuiTypographyParagraph,
-  XuiTypographyText,
-  XuiTypographyTitle
-} from '@xui/react';
-import type { XuiThemeGeneratorOptions, XuiThemeInput } from '@xui/core';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { x } from '@xui/react';
+import type { xThemeGeneratorOptions, xThemeInput } from '@xui/core';
 import { defaultThemePresets } from '@xui/core';
-import { saveThemeGenerationHistory, type XuiThemeGenerationOutput } from '../../theme-history';
-
-type EditorComponentType = 'button' | 'title' | 'paragraph' | 'alert' | 'tag' | 'badge' | 'switch' | 'divider' | 'space';
-
-type EditorNode = {
-  id: string;
-  type: EditorComponentType;
-  props: Record<string, string | boolean | number>;
-};
-
-type EditorProject = {
-  name: string;
-  nodes: EditorNode[];
-  theme: XuiThemeInput;
-};
-
-type EditorViewport = 'desktop' | 'tablet' | 'mobile';
-
-type PaletteItem = {
-  type: EditorComponentType;
-  label: string;
-  group: string;
-  defaults: EditorNode['props'];
-};
+import { saveThemeGenerationHistory, type xThemeGenerationOutput } from '../../theme-history';
+import { CanvasFrame } from './CanvasFrame';
+import { cn, s } from './studio-ui';
+import {
+  type EditorComponentType,
+  type EditorNode,
+  type EditorProject,
+  canvasResolutionPresets,
+  defaultCanvasResolutionId,
+  getCanvasResolution,
+  getNodeLabel,
+  palette,
+  type PaletteItem
+} from './editor-shared';
 
 type EditorTemplate = {
   id: string;
@@ -45,18 +23,6 @@ type EditorTemplate = {
   summary: string;
   createNodes: () => EditorNode[];
 };
-
-const palette: PaletteItem[] = [
-  { type: 'button', label: 'Button', group: 'General', defaults: { text: 'Save changes', variant: 'primary', size: 'md' } },
-  { type: 'title', label: 'Title', group: 'General', defaults: { text: 'Dashboard overview', level: 2 } },
-  { type: 'paragraph', label: 'Paragraph', group: 'General', defaults: { text: 'Compose a screen by dragging components onto the canvas.' } },
-  { type: 'space', label: 'Space', group: 'Layout', defaults: { direction: 'horizontal', size: 'middle' } },
-  { type: 'divider', label: 'Divider', group: 'Layout', defaults: { text: 'Details', orientation: 'left' } },
-  { type: 'switch', label: 'Switch', group: 'Data Entry', defaults: { text: 'Enable notifications', checked: true } },
-  { type: 'tag', label: 'Tag', group: 'Data Display', defaults: { text: 'Production', color: 'success' } },
-  { type: 'badge', label: 'Badge', group: 'Data Display', defaults: { text: 'Inbox', count: 12 } },
-  { type: 'alert', label: 'Alert', group: 'Feedback', defaults: { message: 'Deployment completed', description: 'The latest build is available.', type: 'success', showIcon: true } }
-];
 
 const initialNodes: EditorNode[] = [
   { id: 'node-title', type: 'title', props: { text: 'Operations Dashboard', level: 2 } },
@@ -72,7 +38,8 @@ const storageKey = 'xui-react-editor-project';
 const defaultProject: EditorProject = {
   name: 'Untitled interface',
   nodes: initialNodes,
-  theme: defaultThemePresets[0]
+  theme: defaultThemePresets[0],
+  resolutionId: defaultCanvasResolutionId
 };
 
 function loadEditorProject(): EditorProject {
@@ -90,7 +57,10 @@ function loadEditorProject(): EditorProject {
     return {
       name: typeof parsed.name === 'string' && parsed.name.trim() ? parsed.name : defaultProject.name,
       nodes: Array.isArray(parsed.nodes) && parsed.nodes.length ? parsed.nodes : defaultProject.nodes,
-      theme: parsed.theme ? { ...defaultProject.theme, ...parsed.theme } : defaultProject.theme
+      theme: parsed.theme ? { ...defaultProject.theme, ...parsed.theme } : defaultProject.theme,
+      resolutionId: typeof parsed.resolutionId === 'string' && getCanvasResolution(parsed.resolutionId).id === parsed.resolutionId
+        ? parsed.resolutionId
+        : defaultProject.resolutionId
     };
   } catch {
     return defaultProject;
@@ -105,7 +75,7 @@ function isEditableTarget(target: EventTarget | null) {
   return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement || (target instanceof HTMLElement && target.isContentEditable);
 }
 
-async function generateThemeWithModel(prompt: string, options?: XuiThemeGeneratorOptions) {
+async function generateThemeWithModel(prompt: string, options?: xThemeGeneratorOptions) {
   const response = await fetch('/api/theme', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -116,7 +86,7 @@ async function generateThemeWithModel(prompt: string, options?: XuiThemeGenerato
     throw new Error('Theme API request failed');
   }
 
-  const payload = (await response.json()) as XuiThemeGenerationOutput;
+  const payload = (await response.json()) as xThemeGenerationOutput;
   saveThemeGenerationHistory('react', prompt, options?.image, payload);
   return payload.theme;
 }
@@ -170,105 +140,6 @@ const templates: EditorTemplate[] = [
   }
 ];
 
-function propString(value: unknown) {
-  if (typeof value === 'boolean') {
-    return value ? '{true}' : '{false}';
-  }
-
-  if (typeof value === 'number') {
-    return `{${value}}`;
-  }
-
-  return `"${String(value).replace(/"/g, '\\"')}"`;
-}
-
-function generateNodeJsx(node: EditorNode) {
-  const p = node.props;
-
-  if (node.type === 'button') {
-    return `<XuiButton variant=${propString(p.variant)} size=${propString(p.size)} disabled={${Boolean(p.disabled)}}>${p.text}</XuiButton>`;
-  }
-
-  if (node.type === 'title') {
-    return `<XuiTypographyTitle level={${p.level}}>${p.text}</XuiTypographyTitle>`;
-  }
-
-  if (node.type === 'paragraph') {
-    return `<XuiTypographyParagraph ellipsis={${Boolean(p.ellipsis)}}>${p.text}</XuiTypographyParagraph>`;
-  }
-
-  if (node.type === 'alert') {
-    return `<XuiAlert type=${propString(p.type)} message=${propString(p.message)} description=${propString(p.description)} showIcon={${Boolean(p.showIcon)}} closable={${Boolean(p.closable)}} />`;
-  }
-
-  if (node.type === 'tag') {
-    return `<XuiTag color=${propString(p.color)} closable={${Boolean(p.closable)}}>${p.text}</XuiTag>`;
-  }
-
-  if (node.type === 'badge') {
-    return `<XuiBadge count={${Number(p.count) || 0}} text=${propString(p.text)} dot={${Boolean(p.dot)}} />`;
-  }
-
-  if (node.type === 'switch') {
-    return `<XuiSwitch defaultChecked={${Boolean(p.checked)}}>{({ checked }) => <span>{checked ? 'ON' : 'OFF'}</span>}</XuiSwitch>`;
-  }
-
-  if (node.type === 'divider') {
-    return `<XuiDivider orientation=${propString(p.orientation)}>${p.text}</XuiDivider>`;
-  }
-
-  return `<XuiSpace direction=${propString(p.direction)} size=${propString(p.size)}><XuiButton>Action</XuiButton><XuiTag>Tag</XuiTag></XuiSpace>`;
-}
-
-function renderNode(node: EditorNode) {
-  const p = node.props;
-
-  if (node.type === 'button') {
-    return <XuiButton disabled={Boolean(p.disabled)} variant={String(p.variant) as 'primary'} size={String(p.size) as 'md'}>{String(p.text)}</XuiButton>;
-  }
-
-  if (node.type === 'title') {
-    return <XuiTypographyTitle level={Number(p.level) as 1 | 2 | 3 | 4 | 5}>{String(p.text)}</XuiTypographyTitle>;
-  }
-
-  if (node.type === 'paragraph') {
-    return <XuiTypographyParagraph ellipsis={Boolean(p.ellipsis)}>{String(p.text)}</XuiTypographyParagraph>;
-  }
-
-  if (node.type === 'alert') {
-    return <XuiAlert closable={Boolean(p.closable)} type={String(p.type) as 'success'} message={String(p.message)} description={String(p.description)} showIcon={Boolean(p.showIcon)} />;
-  }
-
-  if (node.type === 'tag') {
-    return <XuiTag closable={Boolean(p.closable)} color={String(p.color)}>{String(p.text)}</XuiTag>;
-  }
-
-  if (node.type === 'badge') {
-    return <XuiBadge count={Number(p.count) || 0} dot={Boolean(p.dot)} text={String(p.text)} />;
-  }
-
-  if (node.type === 'switch') {
-    return (
-      <XuiSpace align="center" size="middle">
-        <XuiSwitch defaultChecked={Boolean(p.checked)}>{({ checked }) => <span className={`xui-switch-demo ${checked ? 'xui-switch-demo--checked' : ''}`}>{checked ? 'ON' : 'OFF'}</span>}</XuiSwitch>
-        <XuiTypographyText type="secondary">{String(p.text)}</XuiTypographyText>
-      </XuiSpace>
-    );
-  }
-
-  if (node.type === 'divider') {
-    return <XuiDivider orientation={String(p.orientation) as 'left'}>{String(p.text)}</XuiDivider>;
-  }
-
-  return (
-    <XuiSpace direction={String(p.direction) as 'horizontal'} size={String(p.size) as 'middle'} wrap>
-      <XuiButton>Action</XuiButton>
-      <XuiTag>Tag</XuiTag>
-      <XuiBadge count={3}><span className="xui-demo-avatar">A</span></XuiBadge>
-    </XuiSpace>
-  );
-}
-
 function FieldEditor({
   label,
   node,
@@ -288,7 +159,7 @@ function FieldEditor({
 
   if (type === 'checkbox') {
     return (
-      <label className="xui-editor-field xui-editor-field--checkbox">
+      <label className={s.fieldCheckbox}>
         <input type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(node.id, name, event.target.checked)} />
         <span>{label}</span>
       </label>
@@ -297,9 +168,9 @@ function FieldEditor({
 
   if (options) {
     return (
-      <label className="xui-editor-field">
+      <label className={s.field}>
         <span>{label}</span>
-        <select value={String(value)} onChange={(event) => onChange(node.id, name, event.target.value)}>
+        <select className={s.select} value={String(value)} onChange={(event) => onChange(node.id, name, event.target.value)}>
           {options.map((option) => <option key={option} value={option}>{option}</option>)}
         </select>
       </label>
@@ -307,26 +178,16 @@ function FieldEditor({
   }
 
   return (
-    <label className="xui-editor-field">
+    <label className={s.field}>
       <span>{label}</span>
       <input
+        className={s.input}
         type={type}
         value={String(value ?? '')}
         onChange={(event) => onChange(node.id, name, type === 'number' ? Number(event.target.value) : event.target.value)}
       />
     </label>
   );
-}
-
-function getNodeLabel(node: EditorNode) {
-  const item = palette.find((entry) => entry.type === node.type);
-  const label = item?.label ?? node.type;
-  const text = node.type === 'alert' ? node.props.message : node.props.text;
-  return {
-    group: item?.group ?? 'Component',
-    label,
-    detail: typeof text === 'string' && text.trim() ? text : node.id
-  };
 }
 
 function LayersTree({
@@ -357,30 +218,30 @@ function LayersTree({
     : nodes;
 
   return (
-    <aside className="xui-editor-layers">
-      <div className="xui-editor-layers__header">
+    <aside className={cn(s.sidebar, s.sidebarLayers)}>
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="xui-playground-eyebrow">Structure</p>
-          <h2>Layers</h2>
+          <p className={s.eyebrow}>Structure</p>
+          <h2 className={s.heading}>Layers</h2>
         </div>
-        <span className="xui-editor-layers__count">{nodes.length}</span>
+        <span className={s.countBadge}>{nodes.length}</span>
       </div>
 
-      <label className="xui-editor-layer-search">
+      <label className={s.layerSearch}>
         <span>Search layers</span>
-        <input value={filter} placeholder="Button, alert, title..." onChange={(event) => onSearch(event.target.value)} />
+        <input className={s.input} value={filter} placeholder="Button, alert, title..." onChange={(event) => onSearch(event.target.value)} />
       </label>
 
-      <div className="xui-editor-tree" role="tree" aria-label="Component structure">
-        <div className="xui-editor-tree__root" role="treeitem" aria-expanded="true">
-          <span className="xui-editor-tree__root-icon" aria-hidden="true" />
-          <span className="xui-editor-tree__root-main">
-            <strong>Canvas</strong>
-            <span>Application Screen</span>
+      <div className={s.tree} role="tree" aria-label="Component structure">
+        <div className={s.treeRoot} role="treeitem" aria-expanded="true">
+          <span className={s.treeRootIcon} aria-hidden="true" />
+          <span className="grid min-w-0 gap-px">
+            <strong className="truncate text-[11px] font-medium">Canvas</strong>
+            <span className="truncate text-[10px] text-[var(--xui-color-text-secondary)]">Application Screen</span>
           </span>
-          <span className="xui-editor-tree__root-count">{nodes.length}</span>
+          <span className={s.countBadge}>{nodes.length}</span>
         </div>
-        <div className="xui-editor-tree__children" role="group">
+        <div className={s.treeChildren} role="group">
           {visibleNodes.length ? (
             visibleNodes.map((node) => {
               const index = nodes.findIndex((entry) => entry.id === node.id);
@@ -390,7 +251,7 @@ function LayersTree({
               return (
                 <div
                   key={node.id}
-                  className={['xui-editor-tree__item', selected ? 'is-selected' : undefined].filter(Boolean).join(' ')}
+                  className={s.treeItem(selected)}
                   draggable
                   role="treeitem"
                   tabIndex={0}
@@ -415,27 +276,27 @@ function LayersTree({
                     }
                   }}
                 >
-                  <span className="xui-editor-tree__connector" aria-hidden="true" />
-                  <span className="xui-editor-tree__drag" aria-hidden="true">⋮⋮</span>
-                  <button className="xui-editor-tree__select" type="button" onClick={(event) => { event.stopPropagation(); onSelect(node.id); }}>
-                    <span className="xui-editor-tree__badge">{node.type}</span>
-                    <span className="xui-editor-tree__main">
+                  <span className={s.treeConnector} aria-hidden="true" />
+                  <span className={s.treeDrag} aria-hidden="true">⋮⋮</span>
+                  <button className={s.treeSelect} type="button" onClick={(event) => { event.stopPropagation(); onSelect(node.id); }}>
+                    <span className={s.treeBadge}>{node.type}</span>
+                    <span className={s.treeMain}>
                       <strong>{nodeLabel.label}</strong>
                       <span>{nodeLabel.detail}</span>
                     </span>
                   </button>
-                  <span className="xui-editor-tree__group">{nodeLabel.group}</span>
-                  <div className="xui-editor-tree__actions">
-                    <button type="button" aria-label="Move layer up" onClick={(event) => { event.stopPropagation(); onMove(node.id, -1); }}>↑</button>
-                    <button type="button" aria-label="Move layer down" onClick={(event) => { event.stopPropagation(); onMove(node.id, 1); }}>↓</button>
-                    <button type="button" aria-label="Delete layer" onClick={(event) => { event.stopPropagation(); onDelete(node.id); }}>×</button>
+                  <span className={s.treeGroup}>{nodeLabel.group}</span>
+                  <div className={s.treeActions(selected)}>
+                    <button className={s.treeActionButton} type="button" aria-label="Move layer up" onClick={(event) => { event.stopPropagation(); onMove(node.id, -1); }}>↑</button>
+                    <button className={s.treeActionButton} type="button" aria-label="Move layer down" onClick={(event) => { event.stopPropagation(); onMove(node.id, 1); }}>↓</button>
+                    <button className={s.treeActionButton} type="button" aria-label="Delete layer" onClick={(event) => { event.stopPropagation(); onDelete(node.id); }}>×</button>
                   </div>
-                  <span className="xui-editor-tree__index">{String(index + 1).padStart(2, '0')}</span>
+                  <span className={s.treeIndex}>{String(index + 1).padStart(2, '0')}</span>
                 </div>
               );
             })
           ) : (
-            <div className="xui-editor-tree__empty">{nodes.length ? 'No matching layers' : 'No components yet'}</div>
+            <div className={s.treeEmpty}>{nodes.length ? 'No matching layers' : 'No components yet'}</div>
           )}
         </div>
       </div>
@@ -458,18 +319,18 @@ function Inspector({
 }) {
   if (!node) {
     return (
-      <aside className="xui-editor-inspector">
-        <p className="xui-playground-eyebrow">Inspector</p>
-        <h2>Select a layer</h2>
-        <p className="xui-playground-copy">Click a component on the canvas to edit its properties.</p>
+      <aside className={cn(s.sidebar, s.sidebarInspector)}>
+        <p className={s.eyebrow}>Inspector</p>
+        <h2 className={s.heading}>Select a layer</h2>
+        <p className={s.copy}>Click a component on the canvas to edit its properties.</p>
       </aside>
     );
   }
 
   return (
-    <aside className="xui-editor-inspector">
-      <p className="xui-playground-eyebrow">Inspector</p>
-      <h2>{palette.find((item) => item.type === node.type)?.label}</h2>
+    <aside className={cn(s.sidebar, s.sidebarInspector)}>
+      <p className={s.eyebrow}>Inspector</p>
+      <h2 className={s.heading}>{palette.find((item) => item.type === node.type)?.label}</h2>
 
       {['button', 'tag', 'title', 'paragraph', 'divider', 'switch', 'badge'].includes(node.type) ? <FieldEditor label="Text" node={node} name="text" onChange={onChange} /> : null}
       {node.type === 'button' ? <FieldEditor label="Variant" node={node} name="variant" options={['primary', 'secondary', 'outline', 'ghost']} onChange={onChange} /> : null}
@@ -490,17 +351,17 @@ function Inspector({
       {node.type === 'divider' ? <FieldEditor label="Orientation" node={node} name="orientation" options={['left', 'center', 'right']} onChange={onChange} /> : null}
       {node.type === 'space' ? <FieldEditor label="Direction" node={node} name="direction" options={['horizontal', 'vertical']} onChange={onChange} /> : null}
       {node.type === 'space' ? <FieldEditor label="Size" node={node} name="size" options={['small', 'middle', 'large']} onChange={onChange} /> : null}
-      <div className="xui-editor-inspector__section">
-        <p className="xui-playground-eyebrow">Layout</p>
+      <div className={s.inspectorSection}>
+        <p className={s.eyebrow}>Layout</p>
         <FieldEditor label="Width" node={node} name="layoutWidth" options={['full', 'auto', 'half']} onChange={onChange} />
         <FieldEditor label="Align" node={node} name="layoutAlign" options={['stretch', 'left', 'center', 'right']} onChange={onChange} />
       </div>
 
-      <div className="xui-editor-inspector__actions">
-        <XuiButton variant="outline" size="sm" onClick={() => onMove(node.id, -1)}>Up</XuiButton>
-        <XuiButton variant="outline" size="sm" onClick={() => onMove(node.id, 1)}>Down</XuiButton>
-        <XuiButton variant="outline" size="sm" onClick={() => onDuplicate(node.id)}>Duplicate</XuiButton>
-        <XuiButton variant="ghost" size="sm" onClick={() => onDelete(node.id)}>Delete</XuiButton>
+      <div className={s.inspectorActions}>
+        <x.Button variant="outline" size="sm" onClick={() => onMove(node.id, -1)}>Up</x.Button>
+        <x.Button variant="outline" size="sm" onClick={() => onMove(node.id, 1)}>Down</x.Button>
+        <x.Button variant="outline" size="sm" onClick={() => onDuplicate(node.id)}>Duplicate</x.Button>
+        <x.Button variant="ghost" size="sm" onClick={() => onDelete(node.id)}>Delete</x.Button>
       </div>
     </aside>
   );
@@ -509,19 +370,23 @@ function Inspector({
 export default function App() {
   const initialProject = useMemo(() => loadEditorProject(), []);
   const [projectName, setProjectName] = useState(initialProject.name);
-  const [theme, setTheme] = useState<XuiThemeInput>(initialProject.theme);
-  const [canvasTarget, setCanvasTarget] = useState<HTMLElement | undefined>();
+  const [theme, setTheme] = useState<xThemeInput>(initialProject.theme);
   const [nodes, setNodes] = useState<EditorNode[]>(initialProject.nodes);
   const [pastNodes, setPastNodes] = useState<EditorNode[][]>([]);
   const [futureNodes, setFutureNodes] = useState<EditorNode[][]>([]);
   const [selectedId, setSelectedId] = useState<string | undefined>(initialProject.nodes[0]?.id);
   const [layerFilter, setLayerFilter] = useState('');
-  const [viewport, setViewport] = useState<EditorViewport>('desktop');
+  const [resolutionId, setResolutionId] = useState(initialProject.resolutionId ?? defaultCanvasResolutionId);
   const [zoom, setZoom] = useState(100);
   const [saveStatus, setSaveStatus] = useState('Saved locally');
   const [paletteFilter, setPaletteFilter] = useState('');
   const importInputRef = useRef<HTMLInputElement>(null);
   const selectedNode = nodes.find((node) => node.id === selectedId);
+  const resolution = useMemo(() => getCanvasResolution(resolutionId), [resolutionId]);
+  const resolutionGroups = useMemo(
+    () => ['Desktop', 'Tablet', 'Mobile'] as const,
+    []
+  );
   const groupedPalette = useMemo(
     () => palette
       .filter((item) => {
@@ -534,17 +399,15 @@ export default function App() {
     }, {}),
     [paletteFilter]
   );
-  const generatedJsx = useMemo(() => ['<XuiSpace direction="vertical" size="middle">', ...nodes.map((node) => `  ${generateNodeJsx(node)}`), '</XuiSpace>'].join('\n'), [nodes]);
-
   useEffect(() => {
     const timeout = window.setTimeout(() => {
-      saveEditorProject({ name: projectName, nodes, theme });
+      saveEditorProject({ name: projectName, nodes, theme, resolutionId });
       setSaveStatus('Saved locally');
     }, 250);
 
     setSaveStatus('Saving...');
     return () => window.clearTimeout(timeout);
-  }, [nodes, projectName, theme]);
+  }, [nodes, projectName, resolutionId, theme]);
 
   const commitNodes = (updater: (current: EditorNode[]) => EditorNode[]) => {
     setNodes((current) => {
@@ -623,14 +486,6 @@ export default function App() {
     });
   };
 
-  const handleDrop = (event: React.DragEvent<HTMLElement>) => {
-    event.preventDefault();
-    const type = event.dataTransfer.getData('application/xui-component') as EditorComponentType;
-    if (type) {
-      addNode(type);
-    }
-  };
-
   const undo = () => {
     setPastNodes((history) => {
       const previous = history[history.length - 1];
@@ -663,11 +518,12 @@ export default function App() {
     commitNodes(() => initialNodes);
     setProjectName(defaultProject.name);
     setTheme(defaultProject.theme);
+    setResolutionId(defaultProject.resolutionId ?? defaultCanvasResolutionId);
     setSelectedId(initialNodes[0]?.id);
   };
 
   const exportProject = () => {
-    const blob = new Blob([JSON.stringify({ name: projectName, nodes, theme }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ name: projectName, nodes, theme, resolutionId }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -685,6 +541,9 @@ export default function App() {
 
       setProjectName(typeof parsed.name === 'string' ? parsed.name : defaultProject.name);
       setTheme(parsed.theme ? { ...defaultProject.theme, ...parsed.theme } : defaultProject.theme);
+      setResolutionId(typeof parsed.resolutionId === 'string' && getCanvasResolution(parsed.resolutionId).id === parsed.resolutionId
+        ? parsed.resolutionId
+        : defaultProject.resolutionId ?? defaultCanvasResolutionId);
       commitNodes(() => parsed.nodes as EditorNode[]);
       setSelectedId(parsed.nodes[0]?.id);
     } catch {
@@ -736,27 +595,27 @@ export default function App() {
   }, [futureNodes, nodes, pastNodes, selectedId]);
 
   return (
-      <main className="xui-editor-shell">
-        <header className="xui-editor-productbar">
-          <div className="xui-editor-brand">
-            <span className="xui-editor-brand__mark">X</span>
+    <main className={s.shell}>
+        <header className={s.productBar}>
+          <div className={s.brand}>
+            <span className={s.brandMark}>X</span>
             <div>
-              <p className="xui-playground-eyebrow">XUI Studio</p>
+              <p className={s.eyebrow}>XUI Studio</p>
               <input
                 aria-label="Project name"
-                className="xui-editor-project-name"
+                className={s.projectName}
                 value={projectName}
                 onChange={(event) => setProjectName(event.target.value)}
               />
             </div>
           </div>
-          <div className="xui-editor-productbar__status">{saveStatus}</div>
-          <XuiSpace size="small">
-            <XuiButton variant="outline" size="sm" disabled={!pastNodes.length} onClick={undo}>Undo</XuiButton>
-            <XuiButton variant="outline" size="sm" disabled={!futureNodes.length} onClick={redo}>Redo</XuiButton>
-            <XuiButton variant="outline" size="sm" onClick={() => importInputRef.current?.click()}>Import</XuiButton>
-            <XuiButton variant="outline" size="sm" onClick={exportProject}>Export</XuiButton>
-          </XuiSpace>
+          <div className={s.status}>{saveStatus}</div>
+          <x.Space size="small">
+            <x.Button variant="outline" size="sm" disabled={!pastNodes.length} onClick={undo}>Undo</x.Button>
+            <x.Button variant="outline" size="sm" disabled={!futureNodes.length} onClick={redo}>Redo</x.Button>
+            <x.Button variant="outline" size="sm" onClick={() => importInputRef.current?.click()}>Import</x.Button>
+            <x.Button variant="outline" size="sm" onClick={exportProject}>Export</x.Button>
+          </x.Space>
           <input
             ref={importInputRef}
             hidden
@@ -769,33 +628,34 @@ export default function App() {
           />
         </header>
 
-        <aside className="xui-editor-palette">
+        <aside className={cn(s.sidebar, s.sidebarPalette)}>
           <div>
-            <p className="xui-playground-eyebrow">xui builder</p>
-            <h1>Drag Drop UI Editor</h1>
-            <p className="xui-playground-copy">Drag components into the canvas, select a layer, edit props, and copy the generated JSX.</p>
+            <p className={s.eyebrow}>xui builder</p>
+            <h1 className={s.heading}>Drag Drop UI Editor</h1>
+            <p className={s.copy}>Drag components onto the canvas, select a layer, and edit props in the inspector.</p>
           </div>
 
-          <label className="xui-editor-palette-search">
+          <label className={s.paletteSearch}>
             <span>Search components</span>
-            <input value={paletteFilter} placeholder="Button, alert, badge..." onChange={(event) => setPaletteFilter(event.target.value)} />
+            <input className={s.input} value={paletteFilter} placeholder="Button, alert, badge..." onChange={(event) => setPaletteFilter(event.target.value)} />
           </label>
 
-          <nav className="xui-editor-palette__groups" aria-label="Component palette">
+          <nav className={s.paletteGroups} aria-label="Component palette">
             {Object.entries(groupedPalette).map(([group, items]) => (
               <section key={group}>
-                <p className="xui-playground-nav__group">{group}</p>
-                <div className="xui-editor-palette__items">
+                <p className={s.groupLabel}>{group}</p>
+                <div className={s.paletteItems}>
                   {items.map((item) => (
                     <button
                       key={item.type}
+                      className={s.paletteButton}
                       draggable
                       type="button"
                       onClick={() => addNode(item.type)}
                       onDragStart={(event) => event.dataTransfer.setData('application/xui-component', item.type)}
                     >
                       <span>{item.label}</span>
-                      <small>{item.type}</small>
+                      <small className="text-[10px] text-[var(--xui-color-text-secondary)]">{item.type}</small>
                     </button>
                   ))}
                 </div>
@@ -803,27 +663,24 @@ export default function App() {
             ))}
           </nav>
 
-          <section className="xui-editor-templates">
-            <p className="xui-playground-nav__group">Templates</p>
-            <div className="xui-editor-template-list">
+          <section className={s.templateSection}>
+            <p className={s.groupLabel}>Templates</p>
+            <div className={s.templateList}>
               {templates.map((template) => (
-                <button key={template.id} type="button" onClick={() => addTemplate(template)}>
-                  <strong>{template.name}</strong>
-                  <span>{template.summary}</span>
+                <button key={template.id} className={s.templateButton} type="button" onClick={() => addTemplate(template)}>
+                  <strong className="text-[11px] font-medium">{template.name}</strong>
+                  <span className="text-[10px] text-[var(--xui-color-text-secondary)]">{template.summary}</span>
                 </button>
               ))}
             </div>
           </section>
 
-          {canvasTarget ? (
-            <XuiThemeDesigner
-              className="xui-editor-theme"
-              initialTheme={theme}
-              onThemeChange={setTheme}
-              target={canvasTarget}
-              themeGenerator={generateThemeWithModel}
-            />
-          ) : null}
+          <x.ThemeDesigner
+            className={s.themePanel}
+            initialTheme={theme}
+            onThemeChange={setTheme}
+            themeGenerator={generateThemeWithModel}
+          />
         </aside>
 
         <LayersTree
@@ -837,93 +694,52 @@ export default function App() {
           onSelect={setSelectedId}
         />
 
-        <section className="xui-editor-stage">
-          <header className="xui-editor-toolbar">
+        <section className={s.stage}>
+          <header className={s.toolbar}>
             <div>
-              <p className="xui-playground-eyebrow">Canvas</p>
-              <h2>Application Screen</h2>
+              <p className={s.eyebrow}>Canvas</p>
+              <h2 className={s.heading}>Application Screen</h2>
             </div>
-            <XuiSpace>
-              <div className="xui-editor-segmented" role="group" aria-label="Viewport">
-                {(['desktop', 'tablet', 'mobile'] as EditorViewport[]).map((item) => (
-                  <button key={item} className={viewport === item ? 'is-active' : ''} type="button" onClick={() => setViewport(item)}>
-                    {item}
-                  </button>
-                ))}
-              </div>
-              <select className="xui-editor-zoom" aria-label="Zoom" value={zoom} onChange={(event) => setZoom(Number(event.target.value))}>
+            <x.Space>
+              <select className={s.toolbarSelect} aria-label="Resolution" value={resolutionId} onChange={(event) => setResolutionId(event.target.value)}>
+                  {resolutionGroups.map((group) => (
+                    <optgroup key={group} label={group}>
+                      {canvasResolutionPresets.filter((preset) => preset.group === group).map((preset) => (
+                        <option key={preset.id} value={preset.id}>
+                          {preset.label} ({preset.width}×{preset.height})
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              <span className={s.resolutionMeta}>{resolution.width}×{resolution.height}</span>
+              <select className={s.toolbarSelect} aria-label="Zoom" value={zoom} onChange={(event) => setZoom(Number(event.target.value))}>
                 <option value={50}>50%</option>
                 <option value={75}>75%</option>
                 <option value={100}>100%</option>
                 <option value={125}>125%</option>
               </select>
-              <XuiButton variant="outline" size="sm" onClick={resetProject}>Reset</XuiButton>
-              <XuiButton size="sm" onClick={() => addNode('button')}>Add Button</XuiButton>
-            </XuiSpace>
+              <x.Button variant="outline" size="sm" onClick={resetProject}>Reset</x.Button>
+              <x.Button size="sm" onClick={() => addNode('button')}>Add Button</x.Button>
+            </x.Space>
           </header>
 
-          <div className="xui-editor-canvas-viewport" data-viewport={viewport}>
-            <div
-              ref={(element) => {
-                if (element && element !== canvasTarget) {
-                  setCanvasTarget(element);
-                }
-              }}
-              className="xui-editor-canvas-theme"
-              style={{ '--xui-editor-zoom': zoom / 100 } as CSSProperties}
-            >
-            <section className="xui-editor-canvas" onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
-              {nodes.length ? (
-                nodes.map((node) => (
-                  <article
-                    key={node.id}
-                    className={['xui-editor-node', selectedId === node.id ? 'is-selected' : undefined].filter(Boolean).join(' ')}
-                    data-align={node.props.layoutAlign ?? 'stretch'}
-                    data-width={node.props.layoutWidth ?? 'full'}
-                    draggable
-                    onClick={() => setSelectedId(node.id)}
-                    onDragOver={(event) => event.preventDefault()}
-                    onDragStart={(event) => event.dataTransfer.setData('application/xui-node', node.id)}
-                    onDrop={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      const draggedNodeId = event.dataTransfer.getData('application/xui-node');
-                      const componentType = event.dataTransfer.getData('application/xui-component') as EditorComponentType;
-                      const targetIndex = nodes.findIndex((entry) => entry.id === node.id);
-
-                      if (draggedNodeId) {
-                        moveNodeToIndex(draggedNodeId, targetIndex);
-                        return;
-                      }
-
-                      if (componentType) {
-                        addNode(componentType, targetIndex);
-                      }
-                    }}
-                  >
-                    <div className="xui-editor-node__meta">
-                      <span>{palette.find((item) => item.type === node.type)?.label}</span>
-                    </div>
-                    {renderNode(node)}
-                  </article>
-                ))
-              ) : (
-                <div className="xui-editor-empty">Drop components here</div>
-              )}
-            </section>
-            </div>
+          <div className={s.canvasViewport}>
+            <CanvasFrame
+              nodes={nodes}
+              resolutionId={resolutionId}
+              selectedId={selectedId}
+              theme={theme}
+              zoom={zoom}
+              onAddComponent={addNode}
+              onMoveNodeToIndex={moveNodeToIndex}
+              onSelect={setSelectedId}
+            />
           </div>
 
-          <section className="xui-editor-code">
-            <div className="xui-editor-code__header">
-              <p className="xui-playground-eyebrow">Generated JSX</p>
-              <XuiButton variant="outline" size="sm" onClick={() => navigator.clipboard?.writeText(generatedJsx)}>Copy</XuiButton>
-            </div>
-            <pre><code>{generatedJsx}</code></pre>
-          </section>
         </section>
 
-        <Inspector node={selectedNode} onChange={updateNode} onDelete={deleteNode} onDuplicate={duplicateNode} onMove={moveNode} />
-      </main>
+      <Inspector node={selectedNode} onChange={updateNode} onDelete={deleteNode} onDuplicate={duplicateNode} onMove={moveNode} />
+    </main>
   );
 }

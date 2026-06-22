@@ -247,7 +247,7 @@ code {
   min-height: 72px;
 }
 
-/* ── XuiButton ─────────────────────────────────────────────── */
+/* ── xButton ─────────────────────────────────────────────── */
 
 .xui-button {
   position: relative;
@@ -342,7 +342,7 @@ code {
   box-shadow: var(--xui-focus-ring);
 }
 
-/* ── XuiTypography ─────────────────────────────────────────── */
+/* ── xTypography ─────────────────────────────────────────── */
 
 .xui-typography {
   color: var(--xui-color-text);
@@ -436,7 +436,7 @@ code {
   white-space: nowrap;
 }
 
-/* ── XuiSpace ──────────────────────────────────────────────── */
+/* ── xSpace ──────────────────────────────────────────────── */
 
 .xui-space {
   display: inline-flex;
@@ -456,7 +456,7 @@ code {
   color: var(--xui-color-text-secondary);
 }
 
-/* ── XuiDivider ────────────────────────────────────────────── */
+/* ── xDivider ────────────────────────────────────────────── */
 
 .xui-divider {
   border-color: var(--xui-color-border);
@@ -513,7 +513,7 @@ code {
   border-left: var(--xui-border-width) solid var(--xui-color-border);
 }
 
-/* ── XuiAlert ──────────────────────────────────────────────── */
+/* ── xAlert ──────────────────────────────────────────────── */
 
 .xui-alert {
   display: flex;
@@ -600,7 +600,7 @@ code {
   color: var(--xui-color-text);
 }
 
-/* ── XuiTag ────────────────────────────────────────────────── */
+/* ── xTag ────────────────────────────────────────────────── */
 
 .xui-tag {
   --xui-tag-color: var(--xui-color-text-secondary);
@@ -652,7 +652,7 @@ code {
   margin-right: -4px;
 }
 
-/* ── XuiBadge ──────────────────────────────────────────────── */
+/* ── xBadge ──────────────────────────────────────────────── */
 
 .xui-badge {
   --xui-badge-color: var(--xui-error);

@@ -31,7 +31,7 @@ pnpm dev:playground:react
 
 ## AI 主题生成
 
-`XuiThemeDesigner` 支持传入 `themeGenerator(prompt, options)`，playground 已内置一个 Vite dev middleware：
+`xThemeDesigner` 支持传入 `themeGenerator(prompt, options)`，playground 已内置一个 Vite dev middleware：
 
 ```bash
 OPENAI_API_KEY=sk-... pnpm dev:playground:react
@@ -52,9 +52,9 @@ OPENAI_API_KEY=sk-... pnpm dev:playground:vue
 
 - `toggle` 逻辑（core）
 - `useToggle`（Vue / React）
-- `XuiSwitch`（Vue / React）
-- `XuiList` / `XuiFlex` / `XuiGrid` / `XuiTree`（Vue / React）
-- `XuiThemeDesigner`（Vue / React）：支持预设、用户自定义主题变量和提示词生成主题
+- `xSwitch`（Vue / React）
+- `xList` / `xFlex` / `xGrid` / `xTree`（Vue / React）
+- `xThemeDesigner`（Vue / React）：支持预设、用户自定义主题变量和提示词生成主题
   - 颜色：背景、表面、文字、主色、辅色、边框、focus ring
   - 排版：字体、字号比例、行高、字重 token
   - 形态：圆角、间距密度、边框粗细、阴影强度、过渡 token

@@ -1,4 +1,4 @@
-export type XuiThemeInput = {
+export type xThemeInput = {
   name: string;
   accent: string;
   secondary: string;
@@ -15,20 +15,20 @@ export type XuiThemeInput = {
   shadowStrength: number;
 };
 
-export type XuiThemeImage = {
+export type xThemeImage = {
   dataUrl?: string;
   url?: string;
   name?: string;
   type?: string;
 };
 
-export type XuiThemeGeneratorOptions = {
-  image?: XuiThemeImage;
+export type xThemeGeneratorOptions = {
+  image?: xThemeImage;
 };
 
-export type XuiThemeGenerator = (prompt: string, options?: XuiThemeGeneratorOptions) => XuiThemeInput | Promise<XuiThemeInput>;
+export type xThemeGenerator = (prompt: string, options?: xThemeGeneratorOptions) => xThemeInput | Promise<xThemeInput>;
 
-export type XuiThemeVariables = {
+export type xThemeVariables = {
   '--xui-bg': string;
   '--xui-surface': string;
   '--xui-surface-muted': string;
@@ -103,18 +103,18 @@ export type XuiThemeVariables = {
   '--xui-box-shadow-secondary': string;
 };
 
-export type XuiComponentSize = 'small' | 'middle' | 'large';
+export type xComponentSize = 'small' | 'middle' | 'large';
 
-export type XuiDirection = 'ltr' | 'rtl';
+export type xDirection = 'ltr' | 'rtl';
 
-export type XuiConfig = {
-  componentSize?: XuiComponentSize;
-  direction?: XuiDirection;
+export type xConfig = {
+  componentSize?: xComponentSize;
+  direction?: xDirection;
   prefixCls?: string;
-  theme?: XuiThemeInput;
+  theme?: xThemeInput;
 };
 
-export const defaultThemePresets: XuiThemeInput[] = [
+export const defaultThemePresets: xThemeInput[] = [
   {
     name: 'Aurora',
     accent: '#38bdf8',
@@ -261,8 +261,8 @@ function isHexColor(value: unknown): value is string {
   return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value);
 }
 
-export function normalizeThemeInput(value: unknown, fallback: XuiThemeInput = defaultThemePresets[0]): XuiThemeInput {
-  const input = typeof value === 'object' && value ? (value as Partial<XuiThemeInput>) : {};
+export function normalizeThemeInput(value: unknown, fallback: xThemeInput = defaultThemePresets[0]): xThemeInput {
+  const input = typeof value === 'object' && value ? (value as Partial<xThemeInput>) : {};
 
   return {
     name: typeof input.name === 'string' && input.name.trim() ? input.name : fallback.name,
@@ -282,7 +282,7 @@ export function normalizeThemeInput(value: unknown, fallback: XuiThemeInput = de
   };
 }
 
-export function generateThemeFromPrompt(prompt: string): XuiThemeInput {
+export function generateThemeFromPrompt(prompt: string): xThemeInput {
   const seed = hash(prompt || 'xui');
   const hue = seed % 360;
   const secondaryHue = (hue + 55 + (seed % 80)) % 360;
@@ -317,7 +317,7 @@ function shadow(alpha: number, y: number, blur: number, spread = 0) {
   return `0 ${y}px ${blur}px ${spread}px rgb(2 6 23 / ${alpha})`;
 }
 
-export function resolveThemeVariables(theme: XuiThemeInput): XuiThemeVariables {
+export function resolveThemeVariables(theme: xThemeInput): xThemeVariables {
   const dark = getColorLuminance(theme.background) < 0.45;
   const text = dark ? '#f8fafc' : '#0f172a';
   const shadowBase = Math.max(0, Math.min(1, theme.shadowStrength));
@@ -412,7 +412,7 @@ export function resolveThemeVariables(theme: XuiThemeInput): XuiThemeVariables {
   };
 }
 
-export function applyThemeVariables(style: CSSStyleDeclaration, theme: XuiThemeInput) {
+export function applyThemeVariables(style: CSSStyleDeclaration, theme: xThemeInput) {
   const variables = resolveThemeVariables(theme);
 
   for (const [name, value] of Object.entries(variables)) {

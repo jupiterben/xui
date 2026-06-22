@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import type { XuiThemeGeneratorOptions, XuiThemeInput } from '@xui/core';
+import type { xThemeGeneratorOptions, xThemeInput } from '@xui/core';
 import { defaultThemePresets } from '@xui/core';
 import {
-  XuiButton,
-  XuiConfigProvider,
-  XuiAlert,
-  XuiBadge,
-  XuiDivider,
-  XuiFlex,
-  XuiGrid,
-  XuiList,
-  XuiSpace,
-  XuiSwitch,
-  XuiTag,
-  XuiThemeDesigner,
-  XuiTypographyParagraph,
-  XuiTypographyText,
-  XuiTypographyTitle,
-  XuiTree,
+  xButton,
+  xConfigProvider,
+  xAlert,
+  xBadge,
+  xDivider,
+  xFlex,
+  xGrid,
+  xList,
+  xSpace,
+  xSwitch,
+  xTag,
+  xThemeDesigner,
+  xTypographyParagraph,
+  xTypographyText,
+  xTypographyTitle,
+  xTree,
   useToggle
 } from '@xui/vue';
 import { computed, ref } from 'vue';
-import { saveThemeGenerationHistory, type XuiThemeGenerationOutput } from '../../theme-history';
+import { saveThemeGenerationHistory, type xThemeGenerationOutput } from '../../theme-history';
 
 type ComponentStatus = 'ready' | 'planned';
 
@@ -81,7 +81,7 @@ const treeNodes = [
 ];
 
 const activeId = ref('button');
-const theme = ref<XuiThemeInput>(defaultThemePresets[0]);
+const theme = ref<xThemeInput>(defaultThemePresets[0]);
 const switchState = useToggle(false);
 
 const groupedCatalog = computed(() =>
@@ -93,7 +93,7 @@ const groupedCatalog = computed(() =>
 
 const activeItem = computed(() => catalog.find((item) => item.id === activeId.value) ?? catalog[0]);
 
-async function generateThemeWithModel(prompt: string, options?: XuiThemeGeneratorOptions) {
+async function generateThemeWithModel(prompt: string, options?: xThemeGeneratorOptions) {
   const response = await fetch('/api/theme', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -104,14 +104,14 @@ async function generateThemeWithModel(prompt: string, options?: XuiThemeGenerato
     throw new Error('Theme API request failed');
   }
 
-  const payload = (await response.json()) as XuiThemeGenerationOutput;
+  const payload = (await response.json()) as xThemeGenerationOutput;
   saveThemeGenerationHistory('vue', prompt, options?.image, payload);
   return payload.theme;
 }
 </script>
 
 <template>
-  <XuiConfigProvider class="min-h-screen" :theme="theme">
+  <xConfigProvider class="min-h-screen" :theme="theme">
     <main class="xui-playground-shell">
       <aside class="xui-playground-sidebar">
         <div>
@@ -132,7 +132,7 @@ async function generateThemeWithModel(prompt: string, options?: XuiThemeGenerato
       </aside>
 
       <section class="xui-playground-content">
-        <XuiThemeDesigner
+        <xThemeDesigner
           class="xui-playground-panel"
           :initial-theme="theme"
           :theme-generator="generateThemeWithModel"
@@ -151,150 +151,150 @@ async function generateThemeWithModel(prompt: string, options?: XuiThemeGenerato
         <section class="xui-playground-panel">
           <div class="xui-playground-panel__header">
             <p>Vue</p>
-            <h2>Xui{{ activeItem.name }}</h2>
+            <h2>x{{ activeItem.name }}</h2>
           </div>
 
           <div class="xui-playground-panel__body">
             <template v-if="activeId === 'config-provider'">
               <p class="xui-playground-copy">
-                This page is wrapped in <code>XuiConfigProvider</code>. The theme designer updates the same token aliases used by future Ant-style components.
+                This page is wrapped in <code>xConfigProvider</code>. The theme designer updates the same token aliases used by future Ant-style components.
               </p>
-              <XuiFlex wrap gap="var(--xui-space-3)" class="mt-5">
+              <xFlex wrap gap="var(--xui-space-3)" class="mt-5">
                 <span v-for="token in ['--xui-color-primary', '--xui-color-bg-container', '--xui-color-border', '--xui-control-height']" :key="token" class="xui-token-pill">
                   {{ token }}
                 </span>
-              </XuiFlex>
+              </xFlex>
             </template>
 
             <template v-else-if="activeId === 'button'">
-              <XuiFlex wrap align="center" gap="var(--xui-space-3)">
-                <XuiButton variant="primary">Primary</XuiButton>
-                <XuiButton variant="secondary">Secondary</XuiButton>
-                <XuiButton variant="outline">Outline</XuiButton>
-                <XuiButton variant="ghost">Ghost</XuiButton>
-              </XuiFlex>
-              <XuiFlex wrap align="center" gap="var(--xui-space-3)" class="mt-4">
-                <XuiButton size="sm">Small</XuiButton>
-                <XuiButton size="md">Middle</XuiButton>
-                <XuiButton size="lg">Large</XuiButton>
-                <XuiButton disabled>Disabled</XuiButton>
-              </XuiFlex>
+              <xFlex wrap align="center" gap="var(--xui-space-3)">
+                <xButton variant="primary">Primary</xButton>
+                <xButton variant="secondary">Secondary</xButton>
+                <xButton variant="outline">Outline</xButton>
+                <xButton variant="ghost">Ghost</xButton>
+              </xFlex>
+              <xFlex wrap align="center" gap="var(--xui-space-3)" class="mt-4">
+                <xButton size="sm">Small</xButton>
+                <xButton size="md">Middle</xButton>
+                <xButton size="lg">Large</xButton>
+                <xButton disabled>Disabled</xButton>
+              </xFlex>
             </template>
 
             <template v-else-if="activeId === 'typography'">
-              <XuiTypographyTitle :level="3">Build readable product surfaces</XuiTypographyTitle>
-              <XuiTypographyParagraph>
+              <xTypographyTitle :level="3">Build readable product surfaces</xTypographyTitle>
+              <xTypographyParagraph>
                 Typography primitives cover titles, paragraphs and inline text states without forcing layout decisions into the component.
-              </XuiTypographyParagraph>
-              <XuiSpace wrap size="middle" class="mt-4">
-                <XuiTypographyText strong>Strong</XuiTypographyText>
-                <XuiTypographyText type="secondary">Secondary</XuiTypographyText>
-                <XuiTypographyText type="success">Success</XuiTypographyText>
-                <XuiTypographyText type="warning">Warning</XuiTypographyText>
-                <XuiTypographyText type="danger">Danger</XuiTypographyText>
-                <XuiTypographyText code>code</XuiTypographyText>
-                <XuiTypographyText keyboard>⌘K</XuiTypographyText>
-                <XuiTypographyText mark>Marked</XuiTypographyText>
-              </XuiSpace>
+              </xTypographyParagraph>
+              <xSpace wrap size="middle" class="mt-4">
+                <xTypographyText strong>Strong</xTypographyText>
+                <xTypographyText type="secondary">Secondary</xTypographyText>
+                <xTypographyText type="success">Success</xTypographyText>
+                <xTypographyText type="warning">Warning</xTypographyText>
+                <xTypographyText type="danger">Danger</xTypographyText>
+                <xTypographyText code>code</xTypographyText>
+                <xTypographyText keyboard>⌘K</xTypographyText>
+                <xTypographyText mark>Marked</xTypographyText>
+              </xSpace>
             </template>
 
             <template v-else-if="activeId === 'switch'">
-              <XuiSwitch v-slot="{ checked }">
+              <xSwitch v-slot="{ checked }">
                 <span class="xui-switch-demo" :class="{ 'xui-switch-demo--checked': checked }">{{ checked ? 'ON' : 'OFF' }}</span>
-              </XuiSwitch>
-              <XuiFlex align="center" gap="var(--xui-space-3)" class="mt-5">
-                <XuiButton variant="outline" @click="switchState.toggle">Toggle hook</XuiButton>
+              </xSwitch>
+              <xFlex align="center" gap="var(--xui-space-3)" class="mt-5">
+                <xButton variant="outline" @click="switchState.toggle">Toggle hook</xButton>
                 <span class="xui-playground-copy">Hook state: {{ switchState.checked ? 'ON' : 'OFF' }}</span>
-              </XuiFlex>
+              </xFlex>
             </template>
 
             <template v-else-if="activeId === 'list'">
-              <XuiList class="grid gap-3" :items="listItems" v-slot="{ item, index }">
+              <xList class="grid gap-3" :items="listItems" v-slot="{ item, index }">
                 <div class="xui-demo-row">
                   <strong>{{ index + 1 }}. {{ item.label }}</strong>
                   <span>{{ item.description }}</span>
                 </div>
-              </XuiList>
+              </xList>
             </template>
 
             <template v-else-if="activeId === 'badge'">
-              <XuiSpace wrap size="large" align="center">
-                <XuiBadge :count="5"><span class="xui-demo-avatar">A</span></XuiBadge>
-                <XuiBadge :count="128" :overflow-count="99"><span class="xui-demo-avatar">B</span></XuiBadge>
-                <XuiBadge dot><span class="xui-demo-avatar">C</span></XuiBadge>
-                <XuiBadge status="success" text="Available" />
-                <XuiBadge status="processing" text="Running" />
-                <XuiBadge status="error" text="Blocked" />
-              </XuiSpace>
+              <xSpace wrap size="large" align="center">
+                <xBadge :count="5"><span class="xui-demo-avatar">A</span></xBadge>
+                <xBadge :count="128" :overflow-count="99"><span class="xui-demo-avatar">B</span></xBadge>
+                <xBadge dot><span class="xui-demo-avatar">C</span></xBadge>
+                <xBadge status="success" text="Available" />
+                <xBadge status="processing" text="Running" />
+                <xBadge status="error" text="Blocked" />
+              </xSpace>
             </template>
 
             <template v-else-if="activeId === 'tag'">
-              <XuiSpace wrap size="middle">
-                <XuiTag>Default</XuiTag>
-                <XuiTag color="success">Success</XuiTag>
-                <XuiTag color="processing">Processing</XuiTag>
-                <XuiTag color="warning">Warning</XuiTag>
-                <XuiTag color="error">Error</XuiTag>
-                <XuiTag color="#7c3aed" closable>Custom</XuiTag>
-              </XuiSpace>
+              <xSpace wrap size="middle">
+                <xTag>Default</xTag>
+                <xTag color="success">Success</xTag>
+                <xTag color="processing">Processing</xTag>
+                <xTag color="warning">Warning</xTag>
+                <xTag color="error">Error</xTag>
+                <xTag color="#7c3aed" closable>Custom</xTag>
+              </xSpace>
             </template>
 
             <template v-else-if="activeId === 'alert'">
               <div class="grid gap-3">
-                <XuiAlert show-icon type="success" message="Deployment completed" description="All packages built and playground assets were generated." />
-                <XuiAlert show-icon type="warning" message="Quota almost full">
+                <xAlert show-icon type="success" message="Deployment completed" description="All packages built and playground assets were generated." />
+                <xAlert show-icon type="warning" message="Quota almost full">
                   <template #action>
-                    <XuiButton size="sm" variant="outline">Review</XuiButton>
+                    <xButton size="sm" variant="outline">Review</xButton>
                   </template>
-                </XuiAlert>
-                <XuiAlert closable show-icon type="error" message="Closable alert" description="Dismiss this alert to verify local component state." />
+                </xAlert>
+                <xAlert closable show-icon type="error" message="Closable alert" description="Dismiss this alert to verify local component state." />
               </div>
             </template>
 
             <template v-else-if="activeId === 'flex'">
-              <XuiFlex wrap align="center" gap="var(--xui-space-3)">
+              <xFlex wrap align="center" gap="var(--xui-space-3)">
                 <span v-for="item in ['Start', 'Middle', 'End', 'Wrap']" :key="item" class="xui-token-pill">{{ item }}</span>
-              </XuiFlex>
+              </xFlex>
             </template>
 
             <template v-else-if="activeId === 'grid'">
-              <XuiGrid :columns="3" gap="var(--xui-space-3)">
+              <xGrid :columns="3" gap="var(--xui-space-3)">
                 <div v-for="item in ['A', 'B', 'C', 'D', 'E', 'F']" :key="item" class="xui-demo-tile">{{ item }}</div>
-              </XuiGrid>
+              </xGrid>
             </template>
 
             <template v-else-if="activeId === 'space'">
               <div class="grid gap-5">
-                <XuiSpace wrap size="middle">
-                  <XuiButton>Save</XuiButton>
-                  <XuiButton variant="outline">Preview</XuiButton>
-                  <XuiButton variant="ghost">Cancel</XuiButton>
-                </XuiSpace>
-                <XuiSpace direction="vertical" size="small" split="•">
+                <xSpace wrap size="middle">
+                  <xButton>Save</xButton>
+                  <xButton variant="outline">Preview</xButton>
+                  <xButton variant="ghost">Cancel</xButton>
+                </xSpace>
+                <xSpace direction="vertical" size="small" split="•">
                   <span>Account</span>
                   <span>Billing</span>
                   <span>Security</span>
-                </XuiSpace>
+                </xSpace>
               </div>
             </template>
 
             <template v-else-if="activeId === 'divider'">
               <div>
                 <span>Section before divider</span>
-                <XuiDivider orientation="left">Details</XuiDivider>
+                <xDivider orientation="left">Details</xDivider>
                 <span>Section after divider</span>
-                <XuiSpace class="mt-5" split="|">
+                <xSpace class="mt-5" split="|">
                   <span>Overview</span>
                   <span>Usage</span>
                   <span>Settings</span>
-                </XuiSpace>
+                </xSpace>
               </div>
             </template>
 
             <template v-else-if="activeId === 'tree'">
-              <XuiTree class="space-y-2 text-sm" :nodes="treeNodes" v-slot="{ node, depth }">
+              <xTree class="space-y-2 text-sm" :nodes="treeNodes" v-slot="{ node, depth }">
                 <span :class="depth === 0 ? 'xui-token-pill' : 'text-[var(--xui-muted)]'">{{ node.label }}</span>
-              </XuiTree>
+              </xTree>
             </template>
 
             <p v-else class="xui-playground-copy">
@@ -304,5 +304,5 @@ async function generateThemeWithModel(prompt: string, options?: XuiThemeGenerato
         </section>
       </section>
     </main>
-  </XuiConfigProvider>
+  </xConfigProvider>
 </template>

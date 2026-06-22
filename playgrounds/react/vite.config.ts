@@ -16,6 +16,14 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
         '@xui/react': fileURLToPath(new URL('../../packages/react/src/index.ts', import.meta.url))
       }
+    },
+    build: {
+      rollupOptions: {
+        input: {
+          main: fileURLToPath(new URL('./index.html', import.meta.url)),
+          canvas: fileURLToPath(new URL('./canvas-preview.html', import.meta.url))
+        }
+      }
     }
   };
 });
