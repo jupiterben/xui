@@ -1,5 +1,5 @@
 import { defineComponent, h } from 'vue';
-import { useToggle } from './useToggle';
+import { useToggle } from '../composables/useToggle';
 
 export const xSwitch = defineComponent({
   name: 'xSwitch',
@@ -15,11 +15,19 @@ export const xSwitch = defineComponent({
         {
           role: 'switch',
           'aria-checked': model.checked.value,
-          disabled: model.disabled.value,
+          'aria-busy': model.loading.value || undefined,
+          disabled: !model.interactive.value,
           onClick: model.toggle
         },
-        slots.default?.({ checked: model.checked.value }) ??
-          (model.checked.value ? 'On' : 'Off')
+        slots.default?.({
+          checked: model.checked.value,
+          loading: model.loading.value
+        }) ??
+          (model.loading.value
+            ? '…'
+            : model.checked.value
+              ? 'On'
+              : 'Off')
       );
   }
 });

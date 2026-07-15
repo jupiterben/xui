@@ -6,7 +6,7 @@ import {
   type xThemeGenerator,
   type xThemeInput
 } from '@xui/core';
-import { x } from './x';
+import { x } from '../x';
 import type { xPromptInputHandle } from './xPromptInput';
 
 type ColorThemeKey = 'accent' | 'secondary' | 'background' | 'error' | 'warning' | 'success' | 'info';

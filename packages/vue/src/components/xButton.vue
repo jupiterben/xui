@@ -1,24 +1,39 @@
 <script setup lang="ts">
+import { canActivate } from '@xui/core';
+import { computed } from 'vue';
+
 type xButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 type xButtonSize = 'sm' | 'md' | 'lg';
 
-defineProps<{
+const props = defineProps<{
   variant?: xButtonVariant;
   size?: xButtonSize;
   disabled?: boolean;
+  loading?: boolean;
 }>();
 
 const emit = defineEmits<{
   click: [event: MouseEvent];
 }>();
+
+const interactive = computed(() =>
+  canActivate({ disabled: props.disabled, loading: props.loading })
+);
+
+function onClick(event: MouseEvent) {
+  if (!interactive.value) return;
+  emit('click', event);
+}
 </script>
 
 <template>
   <button
     class="xui-button"
     :class="[`xui-button--${variant ?? 'primary'}`, `xui-button--${size ?? 'md'}`]"
-    :disabled="disabled"
-    @click="emit('click', $event)"
+    :disabled="!interactive"
+    :aria-busy="loading || undefined"
+    :data-loading="loading || undefined"
+    @click="onClick"
   >
     <slot />
   </button>

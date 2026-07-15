@@ -1,19 +1,22 @@
-export type ToggleState = {
+import {
+  type InteractiveState,
+  createInteractive,
+  isInteractive,
+  setDisabled,
+  setLoading
+} from './interactive';
+
+export type ToggleState = InteractiveState & {
   checked: boolean;
-  disabled?: boolean;
 };
 
 export function createToggle(initial = false): ToggleState {
-  return { checked: initial, disabled: false };
+  return { ...createInteractive(), checked: initial };
 }
 
-export function setDisabled(state: ToggleState, disabled: boolean): ToggleState {
-  state.disabled = disabled;
-  return state;
-}
+export { setDisabled, setLoading, isInteractive };
 
 export function toggle(state: ToggleState): ToggleState {
-  if (state.disabled) return state;
-  state.checked = !state.checked;
-  return state;
+  if (!isInteractive(state)) return state;
+  return { ...state, checked: !state.checked };
 }

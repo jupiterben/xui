@@ -1,5 +1,5 @@
+import { isInteractive, type xThemeImage } from '@xui/core';
 import * as React from 'react';
-import type { xThemeImage } from '@xui/core';
 
 export type xPromptInputHandle = {
   /** Focus the text input */
@@ -21,6 +21,8 @@ export type xPromptInputProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'onCh
   defaultPrompt?: string;
   /** Whether the input is disabled */
   disabled?: boolean;
+  /** Whether the input is loading / busy */
+  loading?: boolean;
   labels?: {
     placeholder?: string;
     imageAlt?: string;
@@ -90,6 +92,7 @@ export const xPromptInput = React.forwardRef<xPromptInputHandle, xPromptInputPro
   {
     defaultPrompt = '',
     disabled = false,
+    loading = false,
     labels,
     onPromptChange,
     onImageChange,
@@ -99,6 +102,7 @@ export const xPromptInput = React.forwardRef<xPromptInputHandle, xPromptInputPro
   },
   ref
 ) {
+  const interactive = isInteractive({ disabled, loading });
   const text = { ...defaultLabels, ...labels };
   const [prompt, setPromptState] = React.useState(defaultPrompt);
   const [image, setImageState] = React.useState<xThemeImage | undefined>();
@@ -143,6 +147,7 @@ export const xPromptInput = React.forwardRef<xPromptInputHandle, xPromptInputPro
 
   const handleImageFile = React.useCallback(
     async (file: File) => {
+      if (!interactive) return;
       try {
         const dataUrl = await readFileAsDataUrl(file);
         setImage({ dataUrl, name: file.name, type: file.type });
@@ -150,12 +155,14 @@ export const xPromptInput = React.forwardRef<xPromptInputHandle, xPromptInputPro
         // silently ignore read errors
       }
     },
-    [setImage]
+    [interactive, setImage]
   );
 
   // Paste handler: images from clipboard or URL text
   const handlePaste = React.useCallback(
     (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+      if (!interactive) return;
+
       const imageFile = getImageFileFromTransfer(event.clipboardData);
       if (imageFile) {
         event.preventDefault();
@@ -170,18 +177,22 @@ export const xPromptInput = React.forwardRef<xPromptInputHandle, xPromptInputPro
         setImage({ url: pastedText, name: pastedText });
       }
     },
-    [handleImageFile, setImage]
+    [handleImageFile, interactive, setImage]
   );
 
   // Drag & drop handlers
-  const handleDragEnter = React.useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dragCounterRef.current++;
-    if (event.dataTransfer?.types.some((type) => type === 'Files' || type.startsWith('image/'))) {
-      setIsDragOver(true);
-    }
-  }, []);
+  const handleDragEnter = React.useCallback(
+    (event: React.DragEvent) => {
+      if (!interactive) return;
+      event.preventDefault();
+      event.stopPropagation();
+      dragCounterRef.current++;
+      if (event.dataTransfer?.types.some((type) => type === 'Files' || type.startsWith('image/'))) {
+        setIsDragOver(true);
+      }
+    },
+    [interactive]
+  );
 
   const handleDragLeave = React.useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -204,13 +215,14 @@ export const xPromptInput = React.forwardRef<xPromptInputHandle, xPromptInputPro
       event.stopPropagation();
       dragCounterRef.current = 0;
       setIsDragOver(false);
+      if (!interactive) return;
 
       const imageFile = getImageFileFromTransfer(event.dataTransfer);
       if (imageFile) {
         handleImageFile(imageFile);
       }
     },
-    [handleImageFile]
+    [handleImageFile, interactive]
   );
 
   // File input change
@@ -231,12 +243,12 @@ export const xPromptInput = React.forwardRef<xPromptInputHandle, xPromptInputPro
     (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
-        if (!disabled && prompt.trim()) {
+        if (interactive && prompt.trim()) {
           onSubmit?.(prompt, image);
         }
       }
     },
-    [disabled, prompt, image, onSubmit]
+    [interactive, prompt, image, onSubmit]
   );
 
   // Auto-resize textarea
@@ -257,11 +269,14 @@ export const xPromptInput = React.forwardRef<xPromptInputHandle, xPromptInputPro
       className={[
         'xui-prompt-input',
         isDragOver ? 'xui-prompt-input--drag-over' : '',
-        disabled ? 'xui-prompt-input--disabled' : '',
+        !interactive ? 'xui-prompt-input--disabled' : '',
+        loading ? 'xui-prompt-input--loading' : '',
         className ?? '',
       ]
         .filter(Boolean)
         .join(' ')}
+      aria-busy={loading || undefined}
+      data-loading={loading || undefined}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -289,7 +304,8 @@ export const xPromptInput = React.forwardRef<xPromptInputHandle, xPromptInputPro
             className="xui-prompt-input__image-remove"
             type="button"
             onClick={() => setImage(undefined)}
-            disabled={disabled}
+            disabled={!interactive}
+            aria-busy={loading || undefined}
           >
             ✕
           </button>
@@ -304,7 +320,7 @@ export const xPromptInput = React.forwardRef<xPromptInputHandle, xPromptInputPro
           rows={1}
           placeholder={text.placeholder}
           value={prompt}
-          disabled={disabled}
+          disabled={!interactive}
           onChange={(event) => setPrompt(event.target.value)}
           onPaste={handlePaste}
           onKeyDown={handleKeyDown}
@@ -314,7 +330,8 @@ export const xPromptInput = React.forwardRef<xPromptInputHandle, xPromptInputPro
           className="xui-prompt-input__attach"
           type="button"
           title={text.addImage}
-          disabled={disabled}
+          disabled={!interactive}
+          aria-busy={loading || undefined}
           onClick={() => fileInputRef.current?.click()}
         >
           {text.addImage}

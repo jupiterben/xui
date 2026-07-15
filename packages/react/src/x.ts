@@ -1,18 +1,23 @@
-import { xAlert } from './xAlert';
-import { xBadge } from './xBadge';
-import { xButton } from './xButton';
-import { xConfigProvider } from './xConfigProvider';
-import { xDivider } from './xDivider';
-import { xFlex } from './xFlex';
-import { xGrid } from './xGrid';
-import { xList } from './xList';
-import { xPromptInput } from './xPromptInput';
-import { xSpace } from './xSpace';
-import { xSwitch } from './xSwitch';
-import { xTag } from './xTag';
-import { xThemeDesigner } from './xThemeDesigner';
-import { xTree } from './xTree';
-import { xTypography, xTypographyParagraph, xTypographyText, xTypographyTitle } from './xTypography';
+import { xAlert } from './components/xAlert';
+import { xBadge } from './components/xBadge';
+import { xButton } from './components/xButton';
+import { xConfigProvider } from './components/xConfigProvider';
+import { xDivider } from './components/xDivider';
+import { xFlex } from './components/xFlex';
+import { xGrid } from './components/xGrid';
+import { xList } from './components/xList';
+import { xPromptInput } from './components/xPromptInput';
+import { xSpace } from './components/xSpace';
+import { xSwitch } from './components/xSwitch';
+import { xTag } from './components/xTag';
+import { xThemeDesigner } from './components/xThemeDesigner';
+import { xTree } from './components/xTree';
+import {
+  xTypography,
+  xTypographyParagraph,
+  xTypographyText,
+  xTypographyTitle
+} from './components/xTypography';
 
 /** JSX namespace for React (`<x.Button />`) — lowercase `x` exports cannot be used as JSX tags directly. */
 export const x = {

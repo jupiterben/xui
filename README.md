@@ -16,8 +16,8 @@ playgrounds/
   react/          # React Tailwind 演示页面（React + Vite）
 packages/
   core/           # 与框架无关的状态机/逻辑
-  vue/            # Vue 适配层（composables + 组件）
-  react/          # React 适配层（hooks + 组件）
+  vue/            # Vue 适配层（composables + components）
+  react/          # React 适配层（hooks + components）
 ```
 
 ## 快速开始
