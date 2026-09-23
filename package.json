@@ -4,16 +4,26 @@
   "version": "0.1.0",
   "packageManager": "pnpm@9.0.0",
   "scripts": {
+    "test:tree": "vitest run --config vitest.config.ts",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "dev:vue": "pnpm --filter @xui/playground-vue^... build && pnpm --filter @xui/playground-vue dev",
     "dev:react": "pnpm --filter @xui/playground-react^... build && pnpm --filter @xui/playground-react dev",
-    "build:playgrounds": "pnpm --filter @xui/playground-vue... --filter @xui/playground-react... build",
+    "dev:svelte": "pnpm --filter @xui/playground-svelte^... build && pnpm --filter @xui/playground-svelte dev",
+    "build:playgrounds": "pnpm --filter @xui/playground-vue... --filter @xui/playground-react... --filter @xui/playground-svelte... build",
     "build:playground:vue": "pnpm --filter @xui/playground-vue... build",
-    "build:playground:react": "pnpm --filter @xui/playground-react... build"
+    "build:playground:react": "pnpm --filter @xui/playground-react... build",
+    "build:playground:svelte": "pnpm --filter @xui/playground-svelte... build"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.0",
+    "jsdom": "^26.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "vitest": "^3.2.0",
+    "vue": "^3.4.0",
     "typescript": "6.0.3"
   }
 }

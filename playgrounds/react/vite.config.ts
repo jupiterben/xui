@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           main: fileURLToPath(new URL('./index.html', import.meta.url)),
+          tree: fileURLToPath(new URL('./tree.html', import.meta.url)),
           canvas: fileURLToPath(new URL('./canvas-preview.html', import.meta.url))
         }
       }

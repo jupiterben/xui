@@ -752,3 +752,13 @@ code {
     height: auto;
   }
 }
+/* Tree styling belongs to the consumer, not the headless adapter. */
+.xui-tree-demo, .xui-tree-demo [data-part="group"] { list-style: none; margin: 0; padding: 0; }
+.xui-tree-demo [data-part="group"] { padding-left: 20px; }
+.xui-tree-demo [data-part="row"] { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px; border-radius: 4px; }
+.xui-tree-demo [data-part="item"] { outline: none; }
+.xui-tree-demo [data-part="item"]:focus-visible > [data-part="row"] { outline: 2px solid var(--xui-color-primary, #277bcb); }
+.xui-tree-demo [data-selected="true"] > [data-part="row"] { background: var(--xui-color-primary-bg, #dfefe9); }
+.xui-tree-demo [data-part="switcher"] { flex: 0 0 24px; width: 24px; height: 24px; border: 1px solid currentColor; border-radius: 3px; }
+.xui-tree-demo [data-part="checkbox"] { flex: 0 0 15px; width: 15px; height: 15px; }
+.xui-tree-demo [data-part="label"] { min-width: 0; overflow-wrap: anywhere; }

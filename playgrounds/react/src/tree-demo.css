@@ -1,0 +1,36 @@
+:root { font-family: system-ui, sans-serif; color: #20252b; background: #f7f8fa; letter-spacing: 0; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1040px; margin: 0 auto; padding: 36px 24px; }
+header { border-bottom: 1px solid #d8dde3; padding-bottom: 20px; }
+.brand { color: #53616c; font-size: 13px; }
+h1 { margin: 8px 0 0; font-size: 28px; }
+h2 { margin: 0 0 18px; font-size: 14px; font-weight: 600; }
+.options { display: flex; flex-wrap: wrap; gap: 16px 24px; padding: 20px 0; font-size: 13px; }
+.options label { display: flex; align-items: center; gap: 6px; }
+input { accent-color: #16745c; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 240px; border-top: 1px solid #d8dde3; }
+.files { min-width: 0; padding: 24px 24px 24px 0; }
+aside { border-left: 1px solid #d8dde3; padding: 24px; min-width: 0; }
+output { display: block; margin-bottom: 28px; font-size: 13px; line-height: 1.8; color: #53616c; overflow-wrap: anywhere; }
+.demo-tree, .demo-tree [data-part="group"] { list-style: none; margin: 0; padding: 0; }
+.demo-tree [data-part="group"] { padding-left: 20px; }
+.demo-tree [data-part="item"] { outline: none; }
+.demo-tree [data-part="row"] { display: flex; align-items: center; min-height: 36px; gap: 8px; padding: 5px 8px; border-radius: 4px; cursor: pointer; }
+.demo-tree [data-part="row"]:hover { background: #edf0f3; }
+.demo-tree [data-selected="true"] > [data-part="row"] { background: #dfefe9; color: #125e4b; }
+.demo-tree [data-part="item"]:focus-visible > [data-part="row"] { outline: 2px solid #277bcb; outline-offset: -2px; }
+.demo-tree [data-disabled="true"] > [data-part="row"] { color: #727b85; opacity: .6; cursor: default; }
+.demo-tree [data-part="switcher"] { width: 22px; height: 22px; flex: 0 0 22px; padding: 0; background: transparent; color: inherit; border: 1px solid #c0c8ce; border-radius: 3px; cursor: pointer; font-size: 16px; }
+.demo-tree [data-part="checkbox"] { margin: 0; width: 15px; height: 15px; flex: 0 0 15px; }
+.demo-tree [data-part="item"]:not([aria-expanded]) > [data-part="row"] { padding-left: 38px; }
+.demo-tree [data-part="label"] { display: flex; min-width: 0; gap: 8px; align-items: center; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.file-icon { width: 12px; height: 15px; flex: 0 0 12px; border: 1px solid #8192a1; border-radius: 1px; background: white; }
+.file-icon.folder { height: 11px; border-color: #b29732; background: #f1dd90; }
+@media (max-width: 640px) {
+  main { padding: 20px 12px; }
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .files { padding-right: 0; }
+  aside { border-left: 0; border-top: 1px solid #d8dde3; padding: 20px 0; }
+  .demo-tree [data-part="group"] { padding-left: 12px; }
+}

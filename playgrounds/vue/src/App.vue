@@ -292,7 +292,7 @@ async function generateThemeWithModel(prompt: string, options?: xThemeGeneratorO
             </template>
 
             <template v-else-if="activeId === 'tree'">
-              <xTree class="space-y-2 text-sm" :nodes="treeNodes" v-slot="{ node, depth }">
+              <xTree class="xui-tree-demo text-sm" aria-label="Project packages" checkable :nodes="treeNodes" v-slot="{ node, depth }">
                 <span :class="depth === 0 ? 'xui-token-pill' : 'text-[var(--xui-muted)]'">{{ node.label }}</span>
               </xTree>
             </template>
